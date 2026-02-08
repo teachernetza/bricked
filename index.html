@@ -2,11 +2,16 @@
 <html lang="es" class="dark">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Essence - Live</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="theme-color" content="#000000">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    
+    <title>Essence | Knowledge Stream</title>
     
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Merriweather:ital,wght@0,300;0,400;0,700;1,400&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
 
     <script>
         tailwind.config = {
@@ -14,17 +19,23 @@
             theme: {
                 extend: {
                     fontFamily: {
-                        serif: ['Georgia', 'Cambria', 'Times New Roman', 'serif'],
-                        sans: ['Segoe UI', 'Roboto', 'Helvetica', 'sans-serif'],
+                        serif: ['Merriweather', 'serif'],
+                        sans: ['Inter', 'sans-serif'],
                     },
                     colors: {
-                        brand: '#3B82F6', // Azul brillante
-                        darkBg: '#000000', 
-                        darkCard: '#121212',
-                        paper: '#F3F4F6'
+                        brand: {
+                            DEFAULT: '#3B82F6',
+                            dark: '#1d4ed8',
+                            light: '#60a5fa'
+                        },
+                        surface: '#121212',
+                        surfaceHighlight: '#1E1E1E'
                     },
-                    animation: {
-                        'pulse-fast': 'pulse 1.5s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+                    height: {
+                        'screen-dvh': '100dvh', /* Clave para móvil */
+                    },
+                    screens: {
+                        'xs': '375px',
                     }
                 }
             }
@@ -32,196 +43,323 @@
     </script>
 
     <style>
-        /* SCROLL SNAP & UTILIDADES */
-        body { background-color: black; color: white; overflow: hidden; }
-        
-        .scroll-container {
-            height: 100vh;
+        /* --- CORE STYLES & RESET --- */
+        :root {
+            --sat: env(safe-area-inset-top);
+            --sab: env(safe-area-inset-bottom);
+        }
+
+        html, body {
+            margin: 0;
+            padding: 0;
+            background-color: #000;
+            color: #fff;
+            overflow: hidden; /* Previene scroll del body, solo el contenedor scrollea */
+            -webkit-font-smoothing: antialiased;
+            touch-action: pan-y; /* Mejora rendimiento touch */
+        }
+
+        /* Ocultar barras de scroll pero permitir funcionalidad */
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+        /* SCROLL SNAP ENGINE */
+        #feed-container {
+            height: 100dvh; /* Dynamic Viewport Height */
             width: 100vw;
             overflow-y: scroll;
             scroll-snap-type: y mandatory;
             scroll-behavior: smooth;
-            scrollbar-width: none; /* Firefox */
+            position: relative;
+            z-index: 10;
         }
-        .scroll-container::-webkit-scrollbar { display: none; }
 
-        .card {
+        .snap-card {
             scroll-snap-align: start;
-            height: 100vh;
+            scroll-snap-stop: always; /* Fuerza a parar en cada tarjeta */
+            height: 100dvh;
             width: 100vw;
             position: relative;
-            overflow: hidden;
             display: flex;
             flex-direction: column;
+            overflow: hidden;
         }
 
-        /* Glassmorphism Sidebar */
-        .glass-sidebar {
-            background: rgba(20, 20, 20, 0.95);
-            backdrop-filter: blur(10px);
-            border-left: 1px solid rgba(255, 255, 255, 0.1);
+        /* TEXT CLAMPING (Puntos suspensivos elegantes) */
+        .line-clamp-custom {
+            display: -webkit-box;
+            -webkit-line-clamp: 8; /* Max lineas antes de cortar */
+            -webkit-box-orient: vertical;
+            overflow: hidden;
         }
 
-        /* Degradado para textos largos */
-        .text-fade {
-            mask-image: linear-gradient(to bottom, black 80%, transparent 100%);
-            -webkit-mask-image: linear-gradient(to bottom, black 80%, transparent 100%);
+        /* GLASSMORPHISM */
+        .glass-panel {
+            background: rgba(20, 20, 20, 0.85);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
         }
-        
-        /* Imagen de fondo con overlay */
-        .bg-image-overlay {
-            position: absolute;
-            inset: 0;
-            z-index: 0;
-            opacity: 0.3;
-            background-size: cover;
-            background-position: center;
-            mask-image: linear-gradient(to bottom, black 0%, transparent 100%);
-            -webkit-mask-image: linear-gradient(to bottom, black 0%, transparent 100%);
+
+        /* ANIMACIONES */
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        .animate-enter { animation: fadeIn 0.6s cubic-bezier(0.2, 0.8, 0.2, 1) forwards; }
+
+        /* LOADING SPINNER */
+        .loader {
+            width: 48px;
+            height: 48px;
+            border: 3px solid #FFF;
+            border-bottom-color: transparent;
+            border-radius: 50%;
+            display: inline-block;
+            box-sizing: border-box;
+            animation: rotation 1s linear infinite;
         }
+        @keyframes rotation { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
+        /* Safe Area Padding para botones inferiores */
+        .safe-pb { padding-bottom: calc(1.5rem + var(--sab)); }
     </style>
 </head>
-<body class="bg-darkBg text-gray-100 antialiased selection:bg-brand selection:text-white">
+<body>
 
-    <div id="onboarding" class="fixed inset-0 z-50 bg-black flex flex-col p-8 transition-transform duration-700">
-        <div class="mt-10 mb-6">
-            <h1 class="text-4xl font-serif font-bold text-white mb-2">Essence.</h1>
-            <p class="text-gray-400">Diseña tu flujo de conocimiento.</p>
+    <div id="onboarding-layer" class="fixed inset-0 z-50 bg-black flex flex-col transition-transform duration-700 ease-in-out">
+        
+        <div class="pt-12 px-6 pb-4 bg-gradient-to-b from-black to-transparent z-10">
+            <h1 class="font-serif text-3xl font-bold text-white mb-1">Essence</h1>
+            <p class="text-gray-400 text-sm">Curaduría inteligente de conocimiento.</p>
         </div>
-        
-        <p class="text-sm font-bold uppercase tracking-widest text-brand mb-4">Elige 3 intereses</p>
-        
-        <div class="flex-1 overflow-y-auto grid grid-cols-2 gap-3 content-start pb-20" id="topic-grid">
-            </div>
 
-        <div class="absolute bottom-0 left-0 w-full p-6 bg-gradient-to-t from-black via-black to-transparent">
-            <button id="btn-start" onclick="startApp()" disabled 
-                class="w-full py-4 rounded-full bg-white text-black font-bold text-lg disabled:opacity-30 disabled:cursor-not-allowed transition-all active:scale-95">
-                Comenzar
+        <div class="flex-1 overflow-y-auto px-6 pb-32">
+            <p class="text-xs font-bold text-brand uppercase tracking-widest mb-6">Selecciona 3 intereses</p>
+            <div id="topics-grid" class="grid grid-cols-2 gap-3">
+                </div>
+        </div>
+
+        <div class="absolute bottom-0 left-0 w-full p-6 bg-gradient-to-t from-black via-black to-transparent safe-pb z-20">
+            <button id="btn-start-app" disabled onclick="App.completeOnboarding()" 
+                class="w-full h-14 rounded-full bg-white text-black font-bold text-lg disabled:opacity-30 disabled:cursor-not-allowed transform active:scale-95 transition-all shadow-lg flex items-center justify-center gap-2">
+                <span>Comenzar</span>
+                <i data-lucide="arrow-right" class="w-5 h-5"></i>
             </button>
         </div>
     </div>
 
-    <button onclick="toggleSidebar()" class="fixed top-5 right-5 z-40 p-3 rounded-full bg-white/10 backdrop-blur border border-white/10 hover:bg-white/20 transition-all">
-        <i data-lucide="menu" class="w-6 h-6 text-white"></i>
-    </button>
-
-    <div id="feed" class="scroll-container">
+    <div class="fixed top-0 left-0 w-full z-40 px-5 py-4 flex justify-between items-start pointer-events-none">
+        <div class="pointer-events-auto bg-black/20 backdrop-blur-md px-3 py-1 rounded-full border border-white/10">
+            <span class="text-xs font-bold text-white/80 tracking-widest">ESSENCE</span>
         </div>
-
-    <div id="loading-trigger" class="fixed bottom-5 left-1/2 -translate-x-1/2 z-30 opacity-0 pointer-events-none">
-        <div class="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-brand"></div>
+        <button onclick="UI.toggleSidebar()" class="pointer-events-auto p-3 rounded-full bg-black/40 backdrop-blur-md border border-white/10 text-white hover:bg-white/20 transition-colors">
+            <i data-lucide="menu" class="w-6 h-6"></i>
+        </button>
     </div>
 
-    <div id="sidebar-overlay" onclick="toggleSidebar()" class="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm hidden opacity-0 transition-opacity duration-300"></div>
+    <div id="feed-container" class="no-scrollbar bg-surface">
+        </div>
+
+    <div id="infinite-loader" class="fixed bottom-10 left-1/2 -translate-x-1/2 z-30 opacity-0 transition-opacity pointer-events-none">
+        <div class="w-2 h-2 bg-brand rounded-full animate-ping"></div>
+    </div>
+
+    <div id="sidebar-backdrop" onclick="UI.toggleSidebar()" class="fixed inset-0 z-40 bg-black/60 backdrop-blur-sm hidden opacity-0 transition-opacity duration-300"></div>
     
-    <div id="sidebar" class="fixed inset-y-0 right-0 z-50 w-80 glass-sidebar transform translate-x-full transition-transform duration-300 p-6 flex flex-col">
-        <div class="flex justify-between items-center mb-10">
-            <h2 class="font-serif font-bold text-xl">Tu Biblioteca</h2>
-            <button onclick="toggleSidebar()"><i data-lucide="x" class="w-6 h-6"></i></button>
+    <div id="sidebar-panel" class="fixed inset-y-0 right-0 z-50 w-80 glass-panel transform translate-x-full transition-transform duration-300 flex flex-col safe-pb">
+        <div class="p-6 flex justify-between items-center border-b border-white/10">
+            <h2 class="font-serif font-bold text-xl">Mi Biblioteca</h2>
+            <button onclick="UI.toggleSidebar()"><i data-lucide="x" class="w-6 h-6 text-gray-400"></i></button>
         </div>
 
-        <div class="grid grid-cols-2 gap-4 mb-8">
-            <div class="bg-white/5 p-4 rounded-xl border border-white/5">
-                <div class="text-2xl font-bold text-brand" id="stat-reads">0</div>
-                <div class="text-xs text-gray-400 uppercase">Leídos</div>
-            </div>
-            <div class="bg-white/5 p-4 rounded-xl border border-white/5">
-                <div class="text-2xl font-bold text-pink-500" id="stat-likes">0</div>
-                <div class="text-xs text-gray-400 uppercase">Likes</div>
-            </div>
-        </div>
-
-        <div class="flex-1 overflow-y-auto">
-            <h3 class="text-xs font-bold text-gray-500 uppercase mb-4 tracking-widest">Tus Intereses Activos</h3>
-            <div id="active-topics-list" class="space-y-2">
+        <div class="flex-1 overflow-y-auto p-6">
+            <div class="grid grid-cols-2 gap-3 mb-8">
+                <div class="bg-white/5 p-3 rounded-xl border border-white/5 text-center">
+                    <span id="stat-read" class="block text-2xl font-bold text-brand">0</span>
+                    <span class="text-[10px] uppercase text-gray-400 tracking-wider">Leídos</span>
                 </div>
-            
-            <button onclick="resetApp()" class="mt-8 text-xs text-red-400 underline w-full text-left">Reiniciar todo</button>
+                <div class="bg-white/5 p-3 rounded-xl border border-white/5 text-center">
+                    <span id="stat-saved" class="block text-2xl font-bold text-pink-500">0</span>
+                    <span class="text-[10px] uppercase text-gray-400 tracking-wider">Guardados</span>
+                </div>
+            </div>
+
+            <div class="mb-8">
+                <h3 class="text-xs font-bold text-gray-500 uppercase mb-3">Tus Temas</h3>
+                <div id="sidebar-topics" class="flex flex-wrap gap-2">
+                    </div>
+            </div>
+
+            <div>
+                <h3 class="text-xs font-bold text-gray-500 uppercase mb-3">Ajustes</h3>
+                <div class="space-y-3">
+                    <button onclick="App.clearData()" class="w-full flex items-center justify-between p-3 rounded-lg bg-red-500/10 text-red-400 hover:bg-red-500/20">
+                        <span class="text-sm font-medium">Borrar Datos y Reiniciar</span>
+                        <i data-lucide="trash-2" class="w-4 h-4"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+        <div class="p-6 border-t border-white/10 text-center">
+            <p class="text-[10px] text-gray-600">v2.4.0 Mobile Optimized</p>
         </div>
     </div>
 
     <script>
-        // --- CONFIGURACIÓN ---
-        const TOPICS_POOL = [
-            "Astronomía", "Psicología", "Filosofía", "Historia", "Biología", 
-            "Física", "Arte", "Literatura", "Economía", "Sociología", 
-            "Tecnología", "Cine", "Música", "Arquitectura", "Geografía",
-            "Matemáticas", "Medicina", "Política", "Antropología", "Química"
-        ];
+        /**
+         * CLASE 1: GESTIÓN DE ESTADO (State Management)
+         * Se encarga de guardar y cargar datos en localStorage.
+         */
+        class StateManager {
+            constructor() {
+                this.key = 'essence_app_v2';
+                this.data = this.load();
+            }
 
-        // --- ESTADO ---
-        let state = {
-            interests: [],
-            history: [], // IDs de artículos ya vistos para no repetir
-            likes: [],
-            page: 1,
-            isLoading: false
-        };
-
-        // --- MOTORES DE API (API ENGINES) ---
-
-        // 1. Motor Wikipedia
-        async function fetchWikipediaContent(topic) {
-            try {
-                // Paso 1: Buscar páginas relacionadas con el tema
-                const searchUrl = `https://es.wikipedia.org/w/api.php?action=query&list=search&srsearch=${topic}&format=json&origin=*&srlimit=10`;
-                const searchRes = await fetch(searchUrl).then(r => r.json());
-                
-                if (!searchRes.query || !searchRes.query.search.length) return null;
-
-                // Filtrar resultados ya vistos
-                const candidates = searchRes.query.search.filter(item => !state.history.includes(item.pageid));
-                if (candidates.length === 0) return null;
-
-                // Elegir uno al azar
-                const chosen = candidates[Math.floor(Math.random() * candidates.length)];
-                
-                // Paso 2: Obtener detalles (Extracto e Imagen)
-                const detailUrl = `https://es.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(chosen.title)}`;
-                const detail = await fetch(detailUrl).then(r => r.json());
-
-                if (!detail.extract) return null;
-
-                return {
-                    id: detail.pageid,
-                    type: 'Wiki',
-                    source: 'Wikipedia',
-                    category: topic,
-                    title: detail.title,
-                    text: detail.extract,
-                    image: detail.thumbnail ? detail.thumbnail.source : null,
-                    url: detail.content_urls ? detail.content_urls.desktop.page : `https://es.wikipedia.org/wiki/${chosen.title}`
+            load() {
+                const saved = localStorage.getItem(this.key);
+                return saved ? JSON.parse(saved) : {
+                    onboardingComplete: false,
+                    interests: [],
+                    history: [], // IDs de articulos vistos
+                    likes: [],   // Artículos guardados
+                    settings: { fontSize: 'medium' }
                 };
+            }
 
-            } catch (e) {
-                console.error("Wiki Error", e);
-                return null;
+            save() {
+                localStorage.setItem(this.key, JSON.stringify(this.data));
+            }
+
+            addInterest(topic) {
+                if (!this.data.interests.includes(topic)) {
+                    this.data.interests.push(topic);
+                    this.save();
+                }
+            }
+
+            removeInterest(topic) {
+                this.data.interests = this.data.interests.filter(t => t !== topic);
+                this.save();
+            }
+
+            recordView(id) {
+                if (!this.data.history.includes(id)) {
+                    this.data.history.push(id);
+                    // Mantener historia ligera (últimos 100)
+                    if(this.data.history.length > 100) this.data.history.shift();
+                    this.save();
+                }
+            }
+
+            toggleLike(cardData) {
+                const exists = this.data.likes.find(l => l.id === cardData.id);
+                if (exists) {
+                    this.data.likes = this.data.likes.filter(l => l.id !== cardData.id);
+                    return false; // Removed
+                } else {
+                    this.data.likes.push(cardData);
+                    this.save();
+                    return true; // Added
+                }
+            }
+
+            reset() {
+                localStorage.removeItem(this.key);
+                location.reload();
             }
         }
 
-        // 2. Motor Open Library (Libros)
-        async function fetchBookContent(topic) {
-            try {
-                // Buscar libros en español sobre el tema
-                const url = `https://openlibrary.org/search.json?q=${topic}&language=spa&limit=20&fields=title,author_name,key,first_sentence,cover_i`;
-                const res = await fetch(url).then(r => r.json());
+        /**
+         * CLASE 2: MOTOR DE CONTENIDO (Content Engine)
+         * Conecta con Wikipedia, OpenLibrary y APIs de Citas.
+         */
+        class ContentEngine {
+            constructor(stateManager) {
+                this.state = stateManager;
+                this.isFetching = false;
+                this.topicsPool = [
+                    "Psicología", "Astronomía", "Filosofía", "Historia", "Tecnología", 
+                    "Biología", "Economía", "Arte", "Literatura", "Sociología", 
+                    "Física", "Química", "Neurociencia", "Cine", "Arquitectura", 
+                    "Geografía", "Política", "Música", "Matemáticas", "Antropología"
+                ];
+            }
 
-                if (!res.docs || res.docs.length === 0) return null;
+            // Selecciona un tema basado en intereses del usuario o aleatorio
+            getTopic() {
+                const userTopics = this.state.data.interests;
+                if (userTopics.length > 0 && Math.random() > 0.2) {
+                    return userTopics[Math.floor(Math.random() * userTopics.length)];
+                }
+                return this.topicsPool[Math.floor(Math.random() * this.topicsPool.length)];
+            }
 
-                // Filtrar libros ya vistos (usando key)
-                const candidates = res.docs.filter(book => !state.history.includes(book.key));
-                const book = candidates[Math.floor(Math.random() * candidates.length)];
+            async fetchNextCard() {
+                if (this.isFetching) return null;
+                this.isFetching = true;
 
-                if (!book) return null;
+                const topic = this.getTopic();
+                let cardData = null;
+
+                // Estrategia de mezcla: 70% Wikipedia, 30% Libros
+                try {
+                    if (Math.random() > 0.3) {
+                        cardData = await this.fetchWikipedia(topic);
+                    } else {
+                        cardData = await this.fetchBook(topic);
+                    }
+
+                    // Fallback si falla la primera opción
+                    if (!cardData) cardData = await this.fetchWikipedia(topic);
+
+                } catch (e) {
+                    console.error("Error fetching content:", e);
+                }
+
+                this.isFetching = false;
+                return cardData;
+            }
+
+            async fetchWikipedia(topic) {
+                // Paso 1: Buscar
+                const searchRes = await fetch(`https://es.wikipedia.org/w/api.php?action=query&list=search&srsearch=${topic}&format=json&origin=*&srlimit=10`).then(r => r.json());
+                if (!searchRes.query || !searchRes.query.search.length) return null;
+
+                // Filtrar vistos
+                const available = searchRes.query.search.filter(i => !this.state.data.history.includes('wiki_'+i.pageid));
+                const item = available.length > 0 ? available[Math.floor(Math.random() * available.length)] : searchRes.query.search[0];
+
+                // Paso 2: Detalles
+                const details = await fetch(`https://es.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(item.title)}`).then(r => r.json());
+                
+                if(!details.extract || details.extract.length < 50) return null;
+
+                return {
+                    id: 'wiki_' + details.pageid,
+                    type: 'knowledge',
+                    source: 'Wikipedia',
+                    category: topic,
+                    title: details.title,
+                    text: details.extract,
+                    image: details.thumbnail ? details.thumbnail.source : null,
+                    url: details.content_urls.desktop.page
+                };
+            }
+
+            async fetchBook(topic) {
+                const res = await fetch(`https://openlibrary.org/search.json?q=${topic}&language=spa&limit=15&fields=key,title,author_name,first_sentence,cover_i`).then(r => r.json());
+                if(!res.docs.length) return null;
+
+                const book = res.docs[Math.floor(Math.random() * res.docs.length)];
+                if(this.state.data.history.includes(book.key)) return null;
 
                 const text = book.first_sentence ? 
-                    `"${book.first_sentence[0]}"` : 
-                    `Una obra destacada de ${book.author_name ? book.author_name[0] : 'Autor desconocido'} sobre ${topic}.`;
+                    (Array.isArray(book.first_sentence) ? book.first_sentence[0] : book.first_sentence) :
+                    `Una obra fundamental de ${book.author_name ? book.author_name[0] : 'Autor desconocido'} sobre el tema ${topic}.`;
 
                 return {
                     id: book.key,
-                    type: 'Libro',
+                    type: 'book',
                     source: 'Open Library',
                     category: topic,
                     title: book.title,
@@ -229,240 +367,287 @@
                     image: book.cover_i ? `https://covers.openlibrary.org/b/id/${book.cover_i}-L.jpg` : null,
                     url: `https://openlibrary.org${book.key}`
                 };
-            } catch (e) { return null; }
+            }
         }
 
-        // --- CORE LOGIC ---
-
-        async function generateCard() {
-            if (state.isLoading) return;
-            state.isLoading = true;
-            document.getElementById('loading-trigger').style.opacity = '1';
-
-            // 1. Elegir tema al azar de los intereses del usuario
-            const randomTopic = state.interests[Math.floor(Math.random() * state.interests.length)];
-            
-            // 2. Decidir fuente (70% Wiki, 30% Libros)
-            let data = null;
-            if (Math.random() > 0.3) {
-                data = await fetchWikipediaContent(randomTopic);
-            } else {
-                data = await fetchBookContent(randomTopic);
-                // Fallback a Wiki si no hay libro
-                if (!data) data = await fetchWikipediaContent(randomTopic);
+        /**
+         * CLASE 3: UI MANAGER (Controlador de Interfaz)
+         * Genera el HTML, maneja el scroll y los eventos.
+         */
+        class UIManager {
+            constructor() {
+                this.feedContainer = document.getElementById('feed-container');
+                this.observer = null;
+                this.synth = window.speechSynthesis; // TTS API
             }
 
-            // 3. Renderizar si hay datos
-            if (data) {
-                state.history.push(data.id);
-                renderCardHTML(data);
-                updateStats(); // Contar como leído (simplificado)
-            }
+            renderCard(data) {
+                const card = document.createElement('div');
+                card.className = "snap-card bg-surface";
+                card.dataset.id = data.id;
 
-            state.isLoading = false;
-            document.getElementById('loading-trigger').style.opacity = '0';
-        }
-
-        function renderCardHTML(data) {
-            const container = document.getElementById('feed');
-            const card = document.createElement('div');
-            card.className = "card bg-darkCard text-white border-b border-white/5";
-            
-            // Imagen de fondo (si existe)
-            const bgImage = data.image ? `<div class="bg-image-overlay" style="background-image: url('${data.image}')"></div>` : '';
-            
-            // Icono según tipo
-            const iconType = data.type === 'Libro' ? 'book' : 'globe';
-
-            card.innerHTML = `
-                ${bgImage}
-                <div class="relative z-10 flex flex-col h-full p-8 pt-20 pb-10">
-                    
-                    <div class="flex items-center gap-2 mb-6 opacity-70">
-                        <span class="px-3 py-1 rounded-full border border-white/20 text-xs font-bold uppercase tracking-widest bg-black/40 backdrop-blur">
-                            ${data.category}
-                        </span>
-                        <div class="flex items-center gap-1 text-xs">
-                            <i data-lucide="${iconType}" class="w-3 h-3"></i>
-                            ${data.source}
+                // Determinar estilo de fondo
+                let bgStyle = '';
+                if (data.image) {
+                    bgStyle = `
+                        <div class="absolute inset-0 z-0">
+                            <img src="${data.image}" class="w-full h-full object-cover opacity-30 blur-sm scale-110" />
+                            <div class="absolute inset-0 bg-gradient-to-t from-surface via-surface/90 to-surface/40"></div>
                         </div>
-                    </div>
+                    `;
+                }
 
-                    <div class="flex-1 flex flex-col justify-center animate-fade-in">
-                        <h2 class="text-3xl md:text-5xl font-serif font-bold leading-tight mb-8 text-shadow-sm">
-                            ${data.title}
-                        </h2>
-                        <p class="text-lg md:text-xl leading-relaxed text-gray-200 font-sans opacity-90 text-fade max-h-[40vh] overflow-hidden">
-                            ${data.text} ...
-                        </p>
-                    </div>
-
-                    <div class="mt-auto pt-6 flex items-center justify-between border-t border-white/10">
-                        <a href="${data.url}" target="_blank" class="flex items-center gap-2 text-brand font-bold hover:underline">
-                            Saber más <i data-lucide="external-link" class="w-4 h-4"></i>
-                        </a>
+                // Plantilla HTML de la Tarjeta
+                card.innerHTML = `
+                    ${bgStyle}
+                    
+                    <div class="relative z-10 flex flex-col h-full w-full max-w-2xl mx-auto p-6 pt-24 pb-8">
                         
-                        <div class="flex gap-4">
-                            <button onclick="toggleLike(this)" class="p-3 rounded-full bg-white/5 hover:bg-white/10 border border-white/10 transition-transform active:scale-90">
-                                <i data-lucide="heart" class="w-6 h-6 text-gray-300"></i>
-                            </button>
-                            <button onclick="shareData('${data.title}', '${data.url}')" class="p-3 rounded-full bg-white/5 hover:bg-white/10 border border-white/10">
-                                <i data-lucide="share-2" class="w-6 h-6 text-gray-300"></i>
-                            </button>
+                        <div class="flex items-center justify-between mb-8 opacity-0 animate-enter" style="animation-delay: 0.1s">
+                            <span class="px-3 py-1 rounded-full border border-white/20 text-[10px] font-bold uppercase tracking-widest bg-black/30 backdrop-blur">
+                                ${data.category}
+                            </span>
+                            <div class="flex items-center gap-2 text-xs text-gray-400 font-medium">
+                                <i data-lucide="${data.type === 'book' ? 'book' : 'globe'}" class="w-3 h-3"></i>
+                                ${data.source}
+                            </div>
+                        </div>
+
+                        <div class="flex-1 flex flex-col justify-center animate-enter" style="animation-delay: 0.2s">
+                            <h2 class="text-3xl xs:text-4xl font-serif font-bold leading-tight mb-6 text-white text-shadow">
+                                ${data.title}
+                            </h2>
+                            <div class="relative">
+                                <p class="text-lg leading-relaxed text-gray-200 font-sans opacity-90 line-clamp-custom">
+                                    ${data.text}
+                                </p>
+                                <div class="absolute bottom-0 left-0 w-full h-12 bg-gradient-to-t from-surface to-transparent"></div>
+                            </div>
+                        </div>
+
+                        <div class="mt-auto pt-8 flex items-center justify-between animate-enter safe-pb" style="animation-delay: 0.3s">
+                            
+                            <a href="${data.url}" target="_blank" class="group flex items-center gap-2 px-5 py-3 rounded-full bg-white/10 hover:bg-white/20 transition-all active:scale-95 border border-white/5">
+                                <span class="text-sm font-bold text-white group-hover:text-brand transition-colors">Leer completo</span>
+                                <i data-lucide="external-link" class="w-4 h-4 text-gray-400 group-hover:text-brand"></i>
+                            </a>
+
+                            <div class="flex gap-4">
+                                <button onclick="App.speakText('${data.text.replace(/'/g, "\\'")}', this)" class="p-3 rounded-full bg-white/5 border border-white/5 hover:bg-white/10 active:scale-90 transition-all text-gray-300">
+                                    <i data-lucide="volume-2" class="w-6 h-6"></i>
+                                </button>
+                                
+                                <button onclick="App.handleLike(this, '${data.id}')" class="p-3 rounded-full bg-white/5 border border-white/5 hover:bg-white/10 active:scale-90 transition-all text-gray-300">
+                                    <i data-lucide="heart" class="w-6 h-6"></i>
+                                </button>
+                            </div>
                         </div>
                     </div>
-                </div>
-            `;
-            
-            container.appendChild(card);
-            lucide.createIcons();
-            
-            // Animación de entrada
-            card.animate([
-                { opacity: 0, transform: 'scale(0.95)' },
-                { opacity: 1, transform: 'scale(1)' }
-            ], { duration: 500, easing: 'ease-out' });
-        }
+                `;
 
-        // --- SISTEMA DE UI ---
+                this.feedContainer.appendChild(card);
+                lucide.createIcons();
 
-        function init() {
-            // Cargar estado
-            const saved = localStorage.getItem('essence_live_state');
-            if (saved) {
-                state = JSON.parse(saved);
-                if (state.interests.length > 0) {
-                    document.getElementById('onboarding').style.display = 'none';
-                    // Cargar primeras 3 tarjetas
-                    generateCard();
-                    generateCard();
-                    generateCard();
+                // Setup Observer for infinite scroll trigger
+                this.observeCard(card);
+            }
+
+            observeCard(card) {
+                // Si ya hay observador previo en el penúltimo elemento, desconectarlo
+                // (Simplificado: observamos cada tarjeta y si intersecta, vemos si es la última)
+                const observer = new IntersectionObserver((entries) => {
+                    entries.forEach(entry => {
+                        if (entry.isIntersecting) {
+                            App.onCardView(card.dataset.id);
+                            
+                            // Si es una de las ultimas 2 tarjetas, cargar mas
+                            const allCards = document.querySelectorAll('.snap-card');
+                            const index = Array.from(allCards).indexOf(entry.target);
+                            if (index >= allCards.length - 2) {
+                                App.loadMore();
+                            }
+                        }
+                    });
+                }, { threshold: 0.5 });
+                
+                observer.observe(card);
+            }
+
+            toggleSidebar() {
+                const panel = document.getElementById('sidebar-panel');
+                const backdrop = document.getElementById('sidebar-backdrop');
+                const isOpen = !panel.classList.contains('translate-x-full');
+
+                if (isOpen) {
+                    panel.classList.add('translate-x-full');
+                    backdrop.classList.add('opacity-0');
+                    setTimeout(() => backdrop.classList.add('hidden'), 300);
                 } else {
-                    renderOnboarding();
+                    // Update UI info before opening
+                    this.updateSidebarData();
+                    backdrop.classList.remove('hidden');
+                    setTimeout(() => backdrop.classList.remove('opacity-0'), 10);
+                    panel.classList.remove('translate-x-full');
                 }
-            } else {
-                renderOnboarding();
             }
 
-            // Configurar Scroll Infinito
-            const feed = document.getElementById('feed');
-            feed.addEventListener('scroll', () => {
-                if (feed.scrollTop + feed.clientHeight >= feed.scrollHeight - 200) {
-                    generateCard();
-                }
-            });
-
-            updateSidebarUI();
+            updateSidebarData() {
+                const state = App.state.data;
+                document.getElementById('stat-read').innerText = state.history.length;
+                document.getElementById('stat-saved').innerText = state.likes.length;
+                
+                const topicContainer = document.getElementById('sidebar-topics');
+                topicContainer.innerHTML = '';
+                state.interests.forEach(topic => {
+                    const chip = document.createElement('span');
+                    chip.className = "px-3 py-1 rounded bg-white/10 text-xs text-gray-300";
+                    chip.innerText = topic;
+                    topicContainer.appendChild(chip);
+                });
+            }
         }
 
-        function renderOnboarding() {
-            const grid = document.getElementById('topic-grid');
-            TOPICS_POOL.forEach(topic => {
-                const btn = document.createElement('button');
-                btn.className = "p-4 rounded-xl border border-white/10 bg-white/5 text-left text-gray-300 hover:bg-white/10 hover:border-brand transition-all";
-                btn.innerText = topic;
-                btn.onclick = () => {
-                    if (state.interests.includes(topic)) {
-                        state.interests = state.interests.filter(t => t !== topic);
-                        btn.classList.remove('bg-brand', 'text-white', 'border-brand');
-                        btn.classList.add('bg-white/5', 'text-gray-300');
-                    } else {
-                        state.interests.push(topic);
-                        btn.classList.remove('bg-white/5', 'text-gray-300');
-                        btn.classList.add('bg-brand', 'text-white', 'border-brand');
-                    }
-                    
-                    const startBtn = document.getElementById('btn-start');
-                    startBtn.disabled = state.interests.length < 3;
-                    startBtn.innerText = state.interests.length < 3 ? `Elige ${3 - state.interests.length} más` : "Comenzar";
+        /**
+         * CLASE 4: APP CONTROLLER (Orquestador Principal)
+         */
+        const App = {
+            state: new StateManager(),
+            content: null,
+            ui: new UIManager(),
+            currentCardsData: [], // Cache temporal
+
+            init() {
+                this.content = new ContentEngine(this.state);
+                
+                // Check Onboarding
+                if (this.state.data.onboardingComplete) {
+                    document.getElementById('onboarding-layer').style.display = 'none';
+                    this.startFeed();
+                } else {
+                    this.setupOnboarding();
+                }
+            },
+
+            setupOnboarding() {
+                const grid = document.getElementById('topics-grid');
+                this.content.topicsPool.forEach(topic => {
+                    const btn = document.createElement('button');
+                    btn.className = "text-left p-4 rounded-xl border border-white/10 bg-white/5 text-gray-400 font-medium hover:border-brand/50 hover:bg-brand/10 hover:text-white transition-all active:scale-95";
+                    btn.innerText = topic;
+                    btn.onclick = () => {
+                        if (this.state.data.interests.includes(topic)) {
+                            this.state.removeInterest(topic);
+                            btn.classList.remove('border-brand', 'bg-brand', 'text-white');
+                            btn.classList.add('border-white/10', 'bg-white/5', 'text-gray-400');
+                        } else {
+                            if (this.state.data.interests.length >= 5) return; // Max 5
+                            this.state.addInterest(topic);
+                            btn.classList.remove('border-white/10', 'bg-white/5', 'text-gray-400');
+                            btn.classList.add('border-brand', 'bg-brand', 'text-white');
+                        }
+                        
+                        // Validar botón continuar
+                        const startBtn = document.getElementById('btn-start-app');
+                        startBtn.disabled = this.state.data.interests.length < 3;
+                        if (!startBtn.disabled) {
+                            startBtn.classList.add('ring-2', 'ring-white/50');
+                        } else {
+                            startBtn.classList.remove('ring-2', 'ring-white/50');
+                        }
+                    };
+                    grid.appendChild(btn);
+                });
+            },
+
+            completeOnboarding() {
+                this.state.data.onboardingComplete = true;
+                this.state.save();
+                
+                const layer = document.getElementById('onboarding-layer');
+                layer.style.transform = 'translateY(-100%)';
+                setTimeout(() => {
+                    layer.style.display = 'none';
+                    this.startFeed();
+                }, 700);
+            },
+
+            async startFeed() {
+                // Carga inicial de 3 tarjetas
+                await this.loadMore();
+                await this.loadMore();
+                await this.loadMore();
+            },
+
+            async loadMore() {
+                const loader = document.getElementById('infinite-loader');
+                loader.style.opacity = '1';
+                
+                const data = await this.content.fetchNextCard();
+                if (data) {
+                    this.currentCardsData.push(data);
+                    this.ui.renderCard(data);
+                }
+                
+                loader.style.opacity = '0';
+            },
+
+            onCardView(id) {
+                this.state.recordView(id);
+            },
+
+            handleLike(btn, id) {
+                const cardData = this.currentCardsData.find(c => c.id === id);
+                if (!cardData) return;
+
+                const isLiked = this.state.toggleLike(cardData);
+                const icon = btn.querySelector('svg');
+                
+                if (isLiked) {
+                    btn.classList.add('text-pink-500', 'bg-pink-500/10');
+                    btn.classList.remove('text-gray-300', 'bg-white/5');
+                    icon.setAttribute('fill', 'currentColor');
+                } else {
+                    btn.classList.remove('text-pink-500', 'bg-pink-500/10');
+                    btn.classList.add('text-gray-300', 'bg-white/5');
+                    icon.setAttribute('fill', 'none');
+                }
+                
+                // Efecto Haptic (Vibración) si el móvil soporta
+                if(navigator.vibrate) navigator.vibrate(50);
+            },
+
+            speakText(text, btn) {
+                if (window.speechSynthesis.speaking) {
+                    window.speechSynthesis.cancel();
+                    btn.classList.remove('text-brand', 'bg-brand/10');
+                    return;
+                }
+
+                const utterance = new SpeechSynthesisUtterance(text);
+                utterance.lang = 'es-ES';
+                utterance.rate = 1.0;
+                
+                utterance.onstart = () => {
+                    btn.classList.add('text-brand', 'bg-brand/10');
                 };
-                grid.appendChild(btn);
-            });
-        }
+                utterance.onend = () => {
+                    btn.classList.remove('text-brand', 'bg-brand/10');
+                };
 
-        function startApp() {
-            saveState();
-            const ob = document.getElementById('onboarding');
-            ob.style.transform = 'translateY(-100%)';
-            setTimeout(() => {
-                ob.style.display = 'none';
-                generateCard();
-                generateCard();
-            }, 700);
-            updateSidebarUI();
-        }
+                window.speechSynthesis.speak(utterance);
+            },
 
-        function toggleLike(btn) {
-            const icon = btn.querySelector('svg');
-            if (btn.classList.contains('bg-pink-500')) {
-                btn.classList.remove('bg-pink-500', 'text-white', 'border-transparent');
-                btn.classList.add('bg-white/5', 'text-gray-300');
-                icon.setAttribute('fill', 'none');
-                state.likes.pop(); // Simplificado
-            } else {
-                btn.classList.add('bg-pink-500', 'text-white', 'border-transparent');
-                btn.classList.remove('bg-white/5', 'text-gray-300');
-                icon.setAttribute('fill', 'currentColor');
-                state.likes.push(Date.now());
+            clearData() {
+                if(confirm('¿Reiniciar todo? Se perderán tus likes.')) {
+                    this.state.reset();
+                }
             }
-            updateStats();
-            saveState();
-        }
+        };
 
-        function toggleSidebar() {
-            const sidebar = document.getElementById('sidebar');
-            const overlay = document.getElementById('sidebar-overlay');
-            const isClosed = sidebar.classList.contains('translate-x-full');
-            
-            if (isClosed) {
-                overlay.classList.remove('hidden');
-                setTimeout(() => overlay.classList.remove('opacity-0'), 10);
-                sidebar.classList.remove('translate-x-full');
-            } else {
-                sidebar.classList.add('translate-x-full');
-                overlay.classList.add('opacity-0');
-                setTimeout(() => overlay.classList.add('hidden'), 300);
-            }
-        }
-
-        function updateSidebarUI() {
-            const list = document.getElementById('active-topics-list');
-            list.innerHTML = '';
-            state.interests.forEach(topic => {
-                const div = document.createElement('div');
-                div.className = "flex items-center gap-2 text-gray-300";
-                div.innerHTML = `<div class="w-2 h-2 rounded-full bg-brand"></div> ${topic}`;
-                list.appendChild(div);
-            });
-            updateStats();
-        }
-
-        function updateStats() {
-            document.getElementById('stat-likes').innerText = state.likes.length;
-            document.getElementById('stat-reads').innerText = state.history.length;
-        }
-
-        function shareData(title, url) {
-            if (navigator.share) {
-                navigator.share({ title: 'Essence', text: `Aprendí sobre: ${title}`, url: url });
-            } else {
-                alert("Enlace copiado al portapapeles: " + url);
-            }
-        }
-
-        function saveState() {
-            localStorage.setItem('essence_live_state', JSON.stringify(state));
-        }
-
-        function resetApp() {
-            if(confirm("¿Borrar todo?")) {
-                localStorage.removeItem('essence_live_state');
-                location.reload();
-            }
-        }
-
-        // Arrancar
-        window.onload = init;
+        // INICIAR APLICACIÓN
+        window.addEventListener('DOMContentLoaded', () => {
+            App.init();
+        });
 
     </script>
 </body>
