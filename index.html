@@ -22,15 +22,18 @@
     .scroll-container {
       scroll-snap-type: y mandatory;
       -webkit-overflow-scrolling: touch;
+      scroll-behavior: smooth;
     }
     
     .card-item {
       scroll-snap-align: start;
       scroll-snap-stop: always;
+      flex-shrink: 0;
     }
     
     .fade-in {
-      animation: fadeIn 0.4s ease-out;
+      animation: fadeIn 0.5s ease-out forwards;
+      opacity: 0;
     }
     
     @keyframes fadeIn {
@@ -72,15 +75,37 @@
       transition: transform 0.2s ease;
     }
     
-    .source-badge {
-      letter-spacing: 0.05em;
+    .topic-option {
+      transition: all 0.2s ease;
+      cursor: pointer;
+    }
+    
+    .topic-option:active {
+      transform: scale(0.95);
     }
   </style>
   <style>@view-transition { navigation: auto; }</style>
  </head>
  <body class="h-full">
-  <div id="app-wrapper" class="h-full w-full relative overflow-hidden"><!-- Header -->
-   <header id="main-header" class="fixed top-0 left-0 right-0 z-40 px-5 py-4 flex items-center justify-between backdrop-blur-md"><button id="menu-btn" class="w-10 h-10 flex items-center justify-center rounded-full transition-colors">
+  <div id="app-wrapper" class="h-full w-full relative overflow-hidden"><!-- Onboarding Modal -->
+   <div id="onboarding-modal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-gradient-to-br from-stone-50 to-stone-100">
+    <div class="bg-white rounded-2xl max-w-md w-full p-8 shadow-2xl max-h-[90vh] overflow-y-auto">
+     <div class="text-center mb-8">
+      <div class="w-16 h-16 mx-auto mb-4 rounded-2xl flex items-center justify-center bg-gradient-to-br from-emerald-500 to-emerald-700">
+       <svg width="32" height="32" viewbox="0 0 24 24" fill="none" stroke="white" stroke-width="1.5"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z" /> <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z" />
+       </svg>
+      </div>
+      <h1 class="text-3xl font-bold mb-2" style="font-family: 'Source Serif 4', serif;">Knowledge Scroll</h1>
+      <p class="text-sm text-gray-600">Elige 6 temas para comenzar</p>
+     </div>
+     <div id="topics-grid" class="grid grid-cols-2 gap-3 mb-8"><!-- Topics rendered here -->
+     </div>
+     <div class="text-center">
+      <p class="text-xs text-gray-500 mb-4"><span id="selected-count">0</span>/6 seleccionados</p><button id="start-btn" disabled class="w-full py-3 px-6 rounded-lg font-semibold transition-all text-white" style="background-color: #d1d5db; cursor: not-allowed;"> Comenzar </button>
+     </div>
+    </div>
+   </div><!-- Header -->
+   <header id="main-header" class="fixed top-0 left-0 right-0 z-40 px-5 py-4 flex items-center justify-between backdrop-blur-md hidden"><button id="menu-btn" class="w-10 h-10 flex items-center justify-center rounded-full transition-colors" type="button">
      <svg width="20" height="14" viewbox="0 0 20 14" fill="none"><path d="M1 1h18M1 7h18M1 13h12" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
      </svg></button>
     <div class="text-center">
@@ -94,13 +119,13 @@
    <aside id="side-menu" class="fixed top-0 left-0 bottom-0 w-80 max-w-[85%] z-50 menu-slide menu-closed overflow-y-auto">
     <div class="p-6 pt-8"><!-- Menu Header -->
      <div class="flex items-center justify-between mb-8">
-      <h2 class="text-xl font-semibold" style="font-family: 'Inter', sans-serif;">Preferencias</h2><button onclick="closeMenu()" class="w-8 h-8 flex items-center justify-center rounded-full transition-colors">
+      <h2 class="text-xl font-semibold" style="font-family: 'Inter', sans-serif;">Preferencias</h2><button type="button" onclick="closeMenu()" class="w-8 h-8 flex items-center justify-center rounded-full transition-colors">
        <svg width="14" height="14" viewbox="0 0 14 14" fill="none"><path d="M1 1l12 12M13 1L1 13" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
        </svg></button>
      </div><!-- Theme Toggle -->
      <div class="mb-8">
       <h3 class="text-xs font-semibold uppercase tracking-wider mb-4 opacity-60">Visualización</h3>
-      <div class="flex items-center justify-between py-3"><span class="font-medium">Modo oscuro</span> <button id="theme-toggle" onclick="toggleTheme()" class="w-12 h-7 rounded-full toggle-switch relative"> <span class="toggle-knob absolute top-1 left-1 w-5 h-5 rounded-full shadow-sm"></span> </button>
+      <div class="flex items-center justify-between py-3"><span class="font-medium">Modo oscuro</span> <button type="button" id="theme-toggle" class="w-12 h-7 rounded-full toggle-switch relative bg-gray-200"> <span class="toggle-knob absolute top-1 left-1 w-5 h-5 rounded-full shadow-sm bg-white"></span> </button>
       </div>
      </div><!-- Topics -->
      <div>
@@ -109,14 +134,14 @@
       </div>
      </div><!-- Stats -->
      <div class="mt-10 pt-6 border-t">
-      <div class="flex items-center gap-3 mb-2">
+      <div class="flex items-center gap-3">
        <svg width="18" height="18" viewbox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
        </svg><span class="text-sm"><span id="likes-count">0</span> artículos guardados</span>
       </div>
      </div>
     </div>
    </aside><!-- Main Scroll Container -->
-   <main id="scroll-container" class="h-full w-full overflow-y-auto scroll-container pt-16"><!-- Welcome Card -->
+   <main id="scroll-container" class="h-full w-full overflow-y-auto scroll-container pt-16 hidden"><!-- Welcome Card -->
     <section id="welcome-card" class="card-item h-full w-full flex flex-col items-center justify-center px-6 text-center">
      <div class="max-w-sm">
       <div class="w-16 h-16 mx-auto mb-6 rounded-2xl flex items-center justify-center">
@@ -124,7 +149,7 @@
        </svg>
       </div>
       <h2 id="welcome-title" class="text-2xl font-semibold mb-3" style="font-family: 'Source Serif 4', serif;">Scroll con propósito</h2>
-      <p id="welcome-tagline" class="text-base leading-relaxed opacity-70 mb-8">Descubre conocimiento real mientras deslizas. Sin ruido, sin distracciones.</p>
+      <p id="welcome-tagline" class="text-base leading-relaxed opacity-70 mb-8">Descubre conocimiento real basado en tus intereses.</p>
       <div class="flex items-center justify-center gap-2 opacity-50">
        <svg width="16" height="16" viewbox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M19 12l-7 7-7-7" />
        </svg><span class="text-sm">Desliza para comenzar</span>
@@ -132,17 +157,18 @@
      </div>
     </section><!-- Cards Container -->
     <div id="cards-container"><!-- Cards rendered by JS -->
-    </div><!-- Loading Indicator -->
-    <div id="loading-indicator" class="card-item h-full w-full flex items-center justify-center hidden">
-     <div class="flex flex-col items-center gap-4">
-      <div class="w-8 h-8 border-2 border-current border-t-transparent rounded-full animate-spin opacity-40"></div><span class="text-sm opacity-50">Cargando más conocimiento...</span>
+    </div><!-- Empty State -->
+    <div id="empty-state" class="card-item h-full w-full flex items-center justify-center px-6 hidden">
+     <div class="text-center max-w-sm">
+      <p class="text-lg opacity-60 mb-4">No hay contenido</p>
+      <p class="text-sm opacity-40">Selecciona más temas en el menú</p>
      </div>
     </div>
    </main>
   </div>
   <script>
-    // Default configuration
-    const defaultConfig = {
+    // State
+    let config = {
       app_title: 'Knowledge Scroll',
       tagline: 'Scroll con propósito',
       background_color: '#FAFAF9',
@@ -152,718 +178,346 @@
       secondary_action: '#78716C'
     };
 
-    // App state
-    let config = { ...defaultConfig };
-    let isDarkMode = false;
-    let selectedTopics = ['fisica', 'biologia', 'psicologia'];
+    let selectedTopics = [];
     let likedCards = new Map();
-    let currentCardIndex = 0;
-    let isInitialized = false;
+    let isDarkMode = false;
+    let appStarted = false;
 
-    // Topics data organized by categories
+    // Topics
     const topics = [
-      // Ciencias Naturales
-      { id: 'fisica', label: 'Física', icon: '⚛', category: 'Ciencias' },
-      { id: 'biologia', label: 'Biología', icon: '🧬', category: 'Ciencias' },
-      { id: 'quimica', label: 'Química', icon: '⚗', category: 'Ciencias' },
-      { id: 'astronomia', label: 'Astronomía', icon: '☆', category: 'Ciencias' },
-      { id: 'neurociencia', label: 'Neurociencia', icon: '⊗', category: 'Ciencias' },
-      
-      // Humanidades
-      { id: 'filosofia', label: 'Filosofía', icon: '◎', category: 'Humanidades' },
-      { id: 'historia', label: 'Historia', icon: '◈', category: 'Humanidades' },
-      { id: 'literatura', label: 'Literatura', icon: '◐', category: 'Humanidades' },
-      { id: 'arte', label: 'Arte', icon: '◆', category: 'Humanidades' },
-      { id: 'arqueologia', label: 'Arqueología', icon: '◇', category: 'Humanidades' },
-      
-      // Ciencias Sociales
-      { id: 'psicologia', label: 'Psicología', icon: '◉', category: 'Sociales' },
-      { id: 'sociologia', label: 'Sociología', icon: '⊕', category: 'Sociales' },
-      { id: 'economia', label: 'Economía', icon: '⊙', category: 'Sociales' },
-      { id: 'politica', label: 'Política', icon: '◑', category: 'Sociales' },
-      { id: 'antropologia', label: 'Antropología', icon: '⊘', category: 'Sociales' },
-      
-      // Tecnología e Innovación
-      { id: 'tecnologia', label: 'Tecnología', icon: '◇', category: 'Tecnología' },
-      { id: 'inteligencia-artificial', label: 'IA y Machine Learning', icon: '◈', category: 'Tecnología' },
-      { id: 'ciberseguridad', label: 'Ciberseguridad', icon: '◊', category: 'Tecnología' },
-      { id: 'biotecnologia', label: 'Biotecnología', icon: '◆', category: 'Tecnología' },
-      { id: 'programacion', label: 'Programación', icon: '◉', category: 'Tecnología' },
-      
-      // Educación y Aprendizaje
-      { id: 'educacion', label: 'Educación', icon: '○', category: 'Aprendizaje' },
-      { id: 'pedagogia', label: 'Pedagogía', icon: '●', category: 'Aprendizaje' },
-      { id: 'linguistica', label: 'Lingüística', icon: '◎', category: 'Aprendizaje' },
-      { id: 'cognicion', label: 'Cognición', icon: '◐', category: 'Aprendizaje' },
-      { id: 'creatividad', label: 'Creatividad', icon: '◑', category: 'Aprendizaje' },
-      
-      // Pensamiento Crítico y Filosofía
-      { id: 'pensamiento', label: 'Pensamiento crítico', icon: '●', category: 'Crítica' },
-      { id: 'logica', label: 'Lógica', icon: '⊗', category: 'Crítica' },
-      { id: 'etica', label: 'Ética', icon: '⊕', category: 'Crítica' },
-      { id: 'epistemologia', label: 'Epistemología', icon: '⊙', category: 'Crítica' },
-      { id: 'metafisica', label: 'Metafísica', icon: '◊', category: 'Crítica' },
-      
-      // Medio Ambiente y Sostenibilidad
-      { id: 'medio-ambiente', label: 'Medio Ambiente', icon: '◐', category: 'Sostenibilidad' },
-      { id: 'ecologia', label: 'Ecología', icon: '◑', category: 'Sostenibilidad' },
-      { id: 'climatologia', label: 'Climatología', icon: '◎', category: 'Sostenibilidad' }
+      { id: 'fisica', label: 'Física', icon: '⚛' },
+      { id: 'biologia', label: 'Biología', icon: '🧬' },
+      { id: 'quimica', label: 'Química', icon: '⚗' },
+      { id: 'astronomia', label: 'Astronomía', icon: '☆' },
+      { id: 'neurociencia', label: 'Neurociencia', icon: '⊗' },
+      { id: 'filosofia', label: 'Filosofía', icon: '◎' },
+      { id: 'historia', label: 'Historia', icon: '◈' },
+      { id: 'literatura', label: 'Literatura', icon: '◐' },
+      { id: 'arte', label: 'Arte', icon: '◆' },
+      { id: 'psicologia', label: 'Psicología', icon: '◉' },
+      { id: 'sociologia', label: 'Sociología', icon: '⊕' },
+      { id: 'economia', label: 'Economía', icon: '⊙' },
+      { id: 'tecnologia', label: 'Tecnología', icon: '◇' },
+      { id: 'inteligencia-artificial', label: 'IA', icon: '◈' },
+      { id: 'ciberseguridad', label: 'Ciberseguridad', icon: '◊' },
+      { id: 'educacion', label: 'Educación', icon: '○' },
+      { id: 'creatividad', label: 'Creatividad', icon: '◑' },
+      { id: 'pensamiento', label: 'Pensamiento crítico', icon: '●' },
     ];
 
-    // Knowledge cards database
-    const knowledgeBase = [
-      {
-        id: 'card-001',
-        topic: 'psicologia',
-        title: 'La memoria de trabajo en el aprendizaje',
-        sourceType: 'Libro gratuito',
-        sourceName: 'Make It Stick — Brown, Roediger & McDaniel',
-        content: 'La memoria de trabajo puede retener aproximadamente 4 elementos simultáneamente. Cuando intentamos aprender material nuevo, este límite determina cuánta información podemos procesar antes de que comience a desvanecerse. La práctica espaciada ayuda a transferir información a la memoria de largo plazo, liberando capacidad para nuevo aprendizaje.',
-        url: 'https://www.retrievalpractice.org/make-it-stick'
-      },
-      {
-        id: 'card-002',
-        topic: 'ciencia',
-        title: 'El efecto de la privación del sueño',
-        sourceType: 'Estudio académico',
-        sourceName: 'Nature Reviews Neuroscience',
-        content: 'Una sola noche sin dormir reduce la capacidad del hipocampo para formar nuevos recuerdos en aproximadamente un 40%. Durante el sueño profundo, el cerebro consolida la información aprendida durante el día, transfiriéndola del almacenamiento temporal al permanente. Este proceso es esencial para el aprendizaje efectivo.',
-        url: 'https://www.nature.com/nrn/'
-      },
-      {
-        id: 'card-003',
-        topic: 'educacion',
-        title: 'El testing effect',
-        sourceType: 'PDF académico',
-        sourceName: 'Cognitive Psychology — Roediger & Karpicke',
-        content: 'Evaluarse a uno mismo sobre material estudiado produce mejor retención a largo plazo que simplemente releerlo. Este fenómeno, llamado "testing effect", demuestra que el acto de recuperar información de la memoria fortalece las conexiones neuronales asociadas, haciendo que el conocimiento sea más accesible en el futuro.',
-        url: 'https://psycnet.apa.org/'
-      },
-      {
-        id: 'card-004',
-        topic: 'filosofia',
-        title: 'La aporía socrática',
-        sourceType: 'Libro gratuito',
-        sourceName: 'Diálogos de Platón — Proyecto Gutenberg',
-        content: 'Sócrates empleaba la aporía —un estado de perplejidad— como herramienta pedagógica. Al demostrar que sus interlocutores no sabían lo que creían saber, creaba el espacio mental necesario para el verdadero aprendizaje. El reconocimiento de la propia ignorancia es el primer paso hacia la sabiduría.',
-        url: 'https://www.gutenberg.org/ebooks/author/93'
-      },
-      {
-        id: 'card-005',
-        topic: 'tecnologia',
-        title: 'La arquitectura de Von Neumann',
-        sourceType: 'Blog educativo',
-        sourceName: 'Computer History Museum',
-        content: 'Prácticamente todas las computadoras modernas siguen la arquitectura propuesta por John von Neumann en 1945: una unidad de procesamiento, memoria que almacena tanto datos como instrucciones, y mecanismos de entrada/salida. Esta idea revolucionaria de almacenar el programa en memoria permitió la computación programable como la conocemos.',
-        url: 'https://computerhistory.org/'
-      },
-      {
-        id: 'card-006',
-        topic: 'historia',
-        title: 'La Biblioteca de Alejandría',
-        sourceType: 'Artículo divulgativo',
-        sourceName: 'Encyclopedia Britannica',
-        content: 'La Biblioteca de Alejandría no fue destruida en un solo evento catastrófico. Los registros históricos sugieren un declive gradual durante varios siglos, causado por recortes de fondos, conflictos políticos y cambios culturales. En su apogeo, contenía aproximadamente 400,000 rollos de papiro, representando gran parte del conocimiento del mundo antiguo.',
-        url: 'https://www.britannica.com/topic/Library-of-Alexandria'
-      },
-      {
-        id: 'card-007',
-        topic: 'pensamiento',
-        title: 'El sesgo de confirmación',
-        sourceType: 'Libro gratuito',
-        sourceName: 'Thinking, Fast and Slow — Daniel Kahneman',
-        content: 'Tendemos a buscar, interpretar y recordar información que confirma nuestras creencias preexistentes. Este sesgo de confirmación opera automáticamente y afecta incluso a expertos en sus campos. La mejor defensa es buscar activamente evidencia que contradiga nuestras hipótesis favoritas.',
-        url: 'https://www.nobelprize.org/prizes/economic-sciences/2002/kahneman/'
-      },
-      {
-        id: 'card-008',
-        topic: 'ciencia',
-        title: 'La neuroplasticidad cerebral',
-        sourceType: 'Estudio académico',
-        sourceName: 'Journal of Neuroscience',
-        content: 'El cerebro adulto mantiene la capacidad de formar nuevas conexiones neuronales durante toda la vida. Esta neuroplasticidad permite el aprendizaje continuo y la recuperación de lesiones cerebrales. La práctica repetida de habilidades específicas aumenta la densidad de materia gris en las áreas cerebrales correspondientes.',
-        url: 'https://www.jneurosci.org/'
-      },
-      {
-        id: 'card-009',
-        topic: 'psicologia',
-        title: 'El flujo (Flow State)',
-        sourceType: 'Libro gratuito',
-        sourceName: 'Flow — Mihaly Csikszentmihalyi',
-        content: 'El estado de flujo ocurre cuando una tarea presenta un nivel de desafío que coincide exactamente con nuestras habilidades. En este estado, perdemos la noción del tiempo, la autoconciencia disminuye, y el rendimiento se optimiza. La clave es encontrar actividades que no sean ni demasiado fáciles ni demasiado difíciles.',
-        url: 'https://www.pursuit-of-happiness.org/history-of-happiness/mihaly-csikszentmihalyi/'
-      },
-      {
-        id: 'card-010',
-        topic: 'educacion',
-        title: 'La zona de desarrollo próximo',
-        sourceType: 'PDF académico',
-        sourceName: 'Mind in Society — Lev Vygotsky',
-        content: 'Vygotsky definió la zona de desarrollo próximo como la distancia entre lo que un estudiante puede hacer solo y lo que puede lograr con ayuda. El aprendizaje más efectivo ocurre en esta zona, donde el apoyo adecuado (andamiaje) permite alcanzar nuevas competencias que eventualmente se vuelven independientes.',
-        url: 'https://www.simplypsychology.org/vygotsky.html'
-      },
-      {
-        id: 'card-011',
-        topic: 'filosofia',
-        title: 'La navaja de Ockham',
-        sourceType: 'Blog educativo',
-        sourceName: 'Stanford Encyclopedia of Philosophy',
-        content: 'Guillermo de Ockham propuso que, ante explicaciones igualmente válidas, se debe preferir la más simple. Este principio de parsimonia no garantiza la verdad, pero guía el pensamiento científico: las teorías que requieren menos suposiciones son más fáciles de probar y refutar, acelerando el progreso del conocimiento.',
-        url: 'https://plato.stanford.edu/entries/ockham/'
-      },
-      {
-        id: 'card-012',
-        topic: 'tecnologia',
-        title: 'El problema de la parada',
-        sourceType: 'Artículo divulgativo',
-        sourceName: 'MIT Technology Review',
-        content: 'Alan Turing demostró en 1936 que es imposible crear un algoritmo universal que determine si cualquier programa terminará o entrará en un bucle infinito. Este resultado fundamental establece límites a lo que las computadoras pueden calcular y tiene implicaciones profundas para la inteligencia artificial y la verificación de software.',
-        url: 'https://www.technologyreview.com/'
-      }
+    // Cards
+    const cards = [
+      { id: 'card-001', topics: ['psicologia'], title: 'La memoria de trabajo', source: 'Make It Stick', type: 'Libro', description: 'Cómo la memoria de trabajo limita el aprendizaje.' },
+      { id: 'card-002', topics: ['psicologia', 'neurociencia'], title: 'Privación del sueño', source: 'Nature Reviews', type: 'Estudio', description: 'El impacto del sueño en la formación de recuerdos.' },
+      { id: 'card-003', topics: ['psicologia'], title: 'Testing effect', source: 'Cognitive Psychology', type: 'Investigación', description: 'Por qué las pruebas mejoran la retención.' },
+      { id: 'card-004', topics: ['psicologia', 'creatividad'], title: 'Flow State', source: 'Flow Theory', type: 'Libro', description: 'Estados de concentración profunda.' },
+      { id: 'card-005', topics: ['tecnologia', 'inteligencia-artificial'], title: 'Deep Learning', source: 'AI Review', type: 'Artículo', description: 'Redes neuronales que aprenden patrones complejos.' },
+      { id: 'card-006', topics: ['tecnologia', 'ciberseguridad'], title: 'Criptografía moderna', source: 'Security Reviews', type: 'Artículo', description: 'Algoritmos que protegen nuestros datos.' },
+      { id: 'card-007', topics: ['filosofia'], title: 'La aporía socrática', source: 'Platón', type: 'Clásico', description: 'La perplejidad como herramienta pedagógica.' },
+      { id: 'card-008', topics: ['historia'], title: 'Biblioteca de Alejandría', source: 'Encyclopedia', type: 'Artículo', description: 'El legado del conocimiento antiguo.' },
+      { id: 'card-009', topics: ['biologia'], title: 'CRISPR', source: 'Nature', type: 'Estudio', description: 'Edición genética revolucionaria.' },
+      { id: 'card-010', topics: ['educacion'], title: 'Zona de desarrollo próximo', source: 'Vygotsky', type: 'Clásico', description: 'El andamiaje educativo.' },
+      { id: 'card-011', topics: ['neurociencia'], title: 'Neuroplasticidad', source: 'Neuroscience', type: 'Estudio', description: 'El cerebro puede formar nuevas conexiones.' },
+      { id: 'card-012', topics: ['pensamiento'], title: 'Sesgos cognitivos', source: 'Kahneman', type: 'Libro', description: 'Errores en nuestro razonamiento.' },
     ];
 
-    // Data handler for SDK
+    // Data SDK handler
     const dataHandler = {
       onDataChanged(data) {
         likedCards.clear();
         data.forEach(item => {
           likedCards.set(item.card_id, item);
         });
-        updateLikesCount();
-        updateCardLikeStates();
+        updateUI();
       }
     };
 
-    // Initialize app
-    async function initApp() {
-      if (isInitialized) return;
-      isInitialized = true;
-
-      try {
-        // Initialize Element SDK if available
-        if (window.elementSdk) {
-          window.elementSdk.init({
-            defaultConfig,
-            onConfigChange: async (newConfig) => {
-              config = { ...defaultConfig, ...newConfig };
-              applyConfig();
-            },
-            mapToCapabilities: (cfg) => ({
-              recolorables: [
-                {
-                  get: () => cfg.background_color || defaultConfig.background_color,
-                  set: (v) => { cfg.background_color = v; window.elementSdk.setConfig({ background_color: v }); }
-                },
-                {
-                  get: () => cfg.surface_color || defaultConfig.surface_color,
-                  set: (v) => { cfg.surface_color = v; window.elementSdk.setConfig({ surface_color: v }); }
-                },
-                {
-                  get: () => cfg.text_color || defaultConfig.text_color,
-                  set: (v) => { cfg.text_color = v; window.elementSdk.setConfig({ text_color: v }); }
-                },
-                {
-                  get: () => cfg.primary_action || defaultConfig.primary_action,
-                  set: (v) => { cfg.primary_action = v; window.elementSdk.setConfig({ primary_action: v }); }
-                },
-                {
-                  get: () => cfg.secondary_action || defaultConfig.secondary_action,
-                  set: (v) => { cfg.secondary_action = v; window.elementSdk.setConfig({ secondary_action: v }); }
-                }
-              ],
-              borderables: [],
-              fontEditable: undefined,
-              fontSizeable: undefined
-            }),
-            mapToEditPanelValues: (cfg) => new Map([
-              ['app_title', cfg.app_title || defaultConfig.app_title],
-              ['tagline', cfg.tagline || defaultConfig.tagline]
-            ])
-          });
-        }
-
-        // Initialize Data SDK if available
-        if (window.dataSdk) {
-          const initResult = await window.dataSdk.init(dataHandler);
-          if (!initResult.isOk) {
-            console.error('Failed to initialize data SDK');
-          }
-        }
-
-        // Render topics
-        renderTopics();
-        
-        // Render initial cards
-        renderCards();
-        
-        // Setup infinite scroll
-        setupInfiniteScroll();
-        
-        // Apply initial config
-        applyConfig();
-      } catch (err) {
-        console.error('Initialization error:', err);
-        // Continue anyway - app can work without SDKs
-        renderTopics();
-        renderCards();
-        setupInfiniteScroll();
-        applyConfig();
-      }
+    // Initialize Element SDK
+    async function initElementSDK() {
+      if (!window.elementSdk) return;
+      window.elementSdk.init({
+        defaultConfig: config,
+        onConfigChange: async (newConfig) => {
+          config = { ...config, ...newConfig };
+          applyConfig();
+        },
+        mapToCapabilities: () => ({
+          recolorables: [],
+          borderables: [],
+          fontEditable: undefined,
+          fontSizeable: undefined
+        }),
+        mapToEditPanelValues: () => new Map()
+      });
     }
 
-    // Apply configuration to UI
-    function applyConfig() {
-      const bgColor = config.background_color || defaultConfig.background_color;
-      const surfaceColor = config.surface_color || defaultConfig.surface_color;
-      const textColor = config.text_color || defaultConfig.text_color;
-      const primaryAction = config.primary_action || defaultConfig.primary_action;
-      const secondaryAction = config.secondary_action || defaultConfig.secondary_action;
-      
-      // Apply to app wrapper
-      const wrapper = document.getElementById('app-wrapper');
-      wrapper.style.backgroundColor = bgColor;
-      wrapper.style.color = textColor;
-      
-      // Apply to header
-      const header = document.getElementById('main-header');
-      header.style.backgroundColor = bgColor + 'E6';
-      
-      // Apply to menu
-      const menu = document.getElementById('side-menu');
-      menu.style.backgroundColor = surfaceColor;
-      menu.style.color = textColor;
-      
-      // Apply to cards
-      document.querySelectorAll('.knowledge-card').forEach(card => {
-        card.style.backgroundColor = surfaceColor;
-        card.style.color = textColor;
-      });
-      
-      // Apply to like buttons
-      document.querySelectorAll('.like-btn').forEach(btn => {
-        const isLiked = btn.dataset.liked === 'true';
-        if (isLiked) {
-          btn.style.backgroundColor = primaryAction;
-          btn.style.color = surfaceColor;
-        } else {
-          btn.style.backgroundColor = 'transparent';
-          btn.style.borderColor = secondaryAction;
-          btn.style.color = secondaryAction;
-        }
-      });
-      
-      // Apply to topic toggles
-      document.querySelectorAll('.topic-toggle').forEach(toggle => {
-        const isActive = toggle.dataset.active === 'true';
-        if (isActive) {
-          toggle.style.backgroundColor = primaryAction + '20';
-          toggle.style.borderColor = primaryAction;
-        } else {
-          toggle.style.backgroundColor = 'transparent';
-          toggle.style.borderColor = secondaryAction + '40';
-        }
-      });
-      
-      // Apply to source badges
-      document.querySelectorAll('.source-badge').forEach(badge => {
-        badge.style.backgroundColor = primaryAction + '15';
-        badge.style.color = primaryAction;
-      });
-      
-      // Apply to learn more links
-      document.querySelectorAll('.learn-more-link').forEach(link => {
-        link.style.color = primaryAction;
-      });
-      
-      // Update text content
-      document.getElementById('header-title').textContent = config.app_title || defaultConfig.app_title;
-      document.getElementById('welcome-tagline').textContent = config.tagline || defaultConfig.tagline;
-      
-      // Update theme toggle
-      updateThemeToggle();
+    // Initialize Data SDK
+    async function initDataSDK() {
+      if (!window.dataSdk) return;
+      await window.dataSdk.init(dataHandler);
     }
 
-    // Render topics in menu
-    function renderTopics() {
-      const container = document.getElementById('topics-list');
-      const secondaryAction = config.secondary_action || defaultConfig.secondary_action;
-      const primaryAction = config.primary_action || defaultConfig.primary_action;
-      const textColor = config.text_color || defaultConfig.text_color;
-      
-      // Group topics by category
-      const grouped = {};
-      topics.forEach(topic => {
-        const cat = topic.category || 'Otros';
-        if (!grouped[cat]) grouped[cat] = [];
-        grouped[cat].push(topic);
-      });
-      
-      let html = '';
-      Object.entries(grouped).forEach(([category, categoryTopics]) => {
-        html += `<div class="mb-6">
-          <h4 class="text-xs font-bold uppercase tracking-widest mb-3 opacity-40" style="font-family: 'Inter', sans-serif;">${category}</h4>
-          <div class="space-y-2">`;
-        
-        categoryTopics.forEach(topic => {
-          const isActive = selectedTopics.includes(topic.id);
-          html += `
-            <button 
-              onclick="toggleTopic('${topic.id}')" 
-              class="topic-toggle w-full flex items-center gap-3 px-4 py-3 rounded-lg border-2 transition-all"
-              data-topic="${topic.id}"
-              data-active="${isActive}"
-              style="background-color: ${isActive ? primaryAction + '20' : 'transparent'}; border-color: ${isActive ? primaryAction : secondaryAction + '40'};"
-            >
-              <span class="text-lg">${topic.icon}</span>
-              <span class="font-medium text-sm flex-1 text-left">${topic.label}</span>
-              <span>
-                ${isActive ? `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="${primaryAction}" stroke-width="2.5"><path d="M20 6L9 17l-5-5"/></svg>` : ''}
-              </span>
-            </button>
-          `;
-        });
-        
-        html += `</div></div>`;
-      });
-      
-      container.innerHTML = html;
+    // Render onboarding
+    function renderOnboarding() {
+      const grid = document.getElementById('topics-grid');
+      grid.innerHTML = topics.map(topic => `
+        <button 
+          type="button"
+          onclick="selectTopic('${topic.id}')"
+          class="topic-option p-4 rounded-lg border-2 text-center"
+          data-topic="${topic.id}"
+          style="border-color: #e5e5e5; background: white;"
+        >
+          <div class="text-3xl mb-2">${topic.icon}</div>
+          <div class="text-xs font-semibold">${topic.label}</div>
+        </button>
+      `).join('');
     }
 
-    // Toggle topic selection
-    function toggleTopic(topicId) {
-      if (selectedTopics.includes(topicId)) {
-        if (selectedTopics.length > 1) {
-          selectedTopics = selectedTopics.filter(t => t !== topicId);
-        }
-      } else {
+    // Select topic in onboarding
+    function selectTopic(topicId) {
+      const btn = document.querySelector(`[data-topic="${topicId}"]`);
+      const isSelected = selectedTopics.includes(topicId);
+      
+      if (isSelected) {
+        selectedTopics = selectedTopics.filter(t => t !== topicId);
+        btn.style.borderColor = '#e5e5e5';
+        btn.style.backgroundColor = 'white';
+      } else if (selectedTopics.length < 6) {
         selectedTopics.push(topicId);
+        btn.style.borderColor = '#059669';
+        btn.style.backgroundColor = '#ecfdf520';
       }
-      renderTopics();
+      
+      updateOnboardingUI();
+    }
+
+    // Update onboarding UI
+    function updateOnboardingUI() {
+      document.getElementById('selected-count').textContent = selectedTopics.length;
+      const btn = document.getElementById('start-btn');
+      
+      if (selectedTopics.length === 6) {
+        btn.disabled = false;
+        btn.style.backgroundColor = '#059669';
+        btn.style.cursor = 'pointer';
+        btn.onclick = startApp;
+      }
+    }
+
+    // Start app
+    function startApp() {
+      if (selectedTopics.length !== 6) return;
+      
+      appStarted = true;
+      document.getElementById('onboarding-modal').style.display = 'none';
+      document.getElementById('scroll-container').style.display = 'flex';
+      document.getElementById('scroll-container').style.flexDirection = 'column';
+      document.getElementById('main-header').style.display = 'flex';
+      
+      renderCards();
+      renderTopicsMenu();
       applyConfig();
     }
 
-    // Render knowledge cards
+    // Render cards
     function renderCards() {
       const container = document.getElementById('cards-container');
-      const surfaceColor = config.surface_color || defaultConfig.surface_color;
-      const textColor = config.text_color || defaultConfig.text_color;
-      const primaryAction = config.primary_action || defaultConfig.primary_action;
-      const secondaryAction = config.secondary_action || defaultConfig.secondary_action;
+      const bgColor = config.background_color;
+      const textColor = config.text_color;
+      const primaryColor = config.primary_action;
       
-      // Filter cards by selected topics and shuffle
-      const filteredCards = knowledgeBase
-        .filter(card => selectedTopics.includes(card.topic))
-        .sort(() => Math.random() - 0.5);
+      let filtered = cards.filter(card => 
+        card.topics.some(t => selectedTopics.includes(t))
+      );
+
+      filtered.sort((a, b) => {
+        const aLiked = likedCards.has(a.id) ? 1 : 0;
+        const bLiked = likedCards.has(b.id) ? 1 : 0;
+        return bLiked - aLiked;
+      });
+
+      if (filtered.length === 0) {
+        document.getElementById('empty-state').style.display = 'flex';
+        container.innerHTML = '';
+        return;
+      }
+
+      document.getElementById('empty-state').style.display = 'none';
       
-      container.innerHTML = filteredCards.map((card, index) => {
+      container.innerHTML = filtered.map((card, i) => {
         const isLiked = likedCards.has(card.id);
-        const topicData = topics.find(t => t.id === card.topic);
-        
         return `
-          <article 
-            class="knowledge-card card-item h-full w-full flex flex-col px-6 py-8 fade-in"
-            style="background-color: ${surfaceColor}; color: ${textColor}; animation-delay: ${index * 0.1}s;"
-            data-card-id="${card.id}"
-          >
+          <article class="card-item h-full w-full flex flex-col px-6 py-8 fade-in" style="background-color: ${bgColor}; color: ${textColor}; animation-delay: ${i * 50}ms;">
             <div class="flex-1 flex flex-col justify-center max-w-lg mx-auto w-full">
-              
-              <!-- Source Badge -->
               <div class="mb-6">
-                <span class="source-badge inline-block px-3 py-1.5 rounded-full text-xs font-semibold uppercase" style="background-color: ${primaryAction}15; color: ${primaryAction};">
-                  ${card.sourceType}
+                <span class="inline-block px-3 py-1.5 rounded-full text-xs font-semibold uppercase" style="background-color: ${primaryColor}20; color: ${primaryColor};">
+                  ${card.type}
                 </span>
               </div>
-              
-              <!-- Title -->
-              <h2 class="text-2xl font-semibold mb-4 leading-tight" style="font-family: 'Source Serif 4', serif;">
+              <h2 class="text-2xl font-semibold mb-4" style="font-family: 'Source Serif 4', serif;">
                 ${card.title}
               </h2>
-              
-              <!-- Source -->
-              <p class="text-sm mb-6 opacity-60" style="font-family: 'Inter', sans-serif;">
-                ${card.sourceName}
+              <p class="text-sm mb-6 opacity-60">${card.source}</p>
+              <p class="text-base leading-relaxed mb-8 opacity-80" style="font-family: 'Source Serif 4', serif;">
+                ${card.description}
               </p>
-              
-              <!-- Content -->
-              <p class="text-base leading-relaxed mb-8 opacity-80" style="font-family: 'Source Serif 4', serif; line-height: 1.8;">
-                ${card.content}
-              </p>
-              
-              <!-- Actions -->
-              <div class="flex items-center gap-4 pt-4 border-t" style="border-color: ${secondaryAction}20;">
-                
-                <!-- Learn More -->
-                <a 
-                  href="${card.url}" 
-                  target="_blank" 
-                  rel="noopener noreferrer"
-                  class="learn-more-link flex items-center gap-2 text-sm font-medium transition-opacity hover:opacity-70"
-                  style="color: ${primaryAction};"
-                >
-                  <span>Saber más</span>
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/>
-                    <polyline points="15 3 21 3 21 9"/>
-                    <line x1="10" y1="14" x2="21" y2="3"/>
-                  </svg>
-                </a>
-                
-                <!-- Like Button -->
+              <div class="flex items-center gap-4 pt-4 border-t" style="border-color: ${config.secondary_action}20;">
                 <button 
+                  type="button"
                   onclick="toggleLike('${card.id}')"
-                  class="like-btn ml-auto flex items-center gap-2 px-4 py-2 rounded-full border-2 text-sm font-medium transition-all"
-                  data-card-id="${card.id}"
-                  data-liked="${isLiked}"
-                  style="background-color: ${isLiked ? primaryAction : 'transparent'}; border-color: ${isLiked ? primaryAction : secondaryAction}; color: ${isLiked ? surfaceColor : secondaryAction};"
+                  class="like-btn ml-auto flex items-center gap-2 px-4 py-2 rounded-full border-2 text-sm font-medium"
+                  style="background-color: ${isLiked ? primaryColor : 'transparent'}; border-color: ${isLiked ? primaryColor : config.secondary_action}; color: ${isLiked ? config.surface_color : config.secondary_action};"
                 >
                   <svg width="16" height="16" viewBox="0 0 24 24" fill="${isLiked ? 'currentColor' : 'none'}" stroke="currentColor" stroke-width="2">
                     <path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3zM7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3"/>
                   </svg>
                   <span>${isLiked ? 'Guardado' : 'Me gusta'}</span>
                 </button>
-                
               </div>
-              
-              <!-- Topic Tag -->
-              <div class="mt-6 flex items-center gap-2 opacity-40">
-                <span class="text-xs">${topicData?.icon || '○'}</span>
-                <span class="text-xs font-medium uppercase tracking-wide">${topicData?.label || card.topic}</span>
-              </div>
-              
             </div>
-            
-            <!-- Scroll Indicator -->
             <div class="flex items-center justify-center gap-2 pt-6 opacity-30">
               <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <path d="M12 5v14M19 12l-7 7-7-7"/>
               </svg>
             </div>
-            
           </article>
         `;
       }).join('');
     }
 
-    // Toggle like status
+    // Toggle like
     async function toggleLike(cardId) {
-      const btn = document.querySelector(`.like-btn[data-card-id="${cardId}"]`);
+      const btn = document.querySelector(`.like-btn[onclick*="${cardId}"]`);
       if (!btn) return;
       
-      const isCurrentlyLiked = likedCards.has(cardId);
-      
-      // Add animation
       btn.classList.add('like-pulse');
-      setTimeout(() => btn.classList.remove('like-pulse'), 300);
-      
-      // Disable button during operation
       btn.disabled = true;
       
-      if (isCurrentlyLiked) {
-        // Remove like
-        const likeData = likedCards.get(cardId);
-        if (likeData && likeData.__backendId) {
-          const result = await window.dataSdk.delete(likeData);
-          if (!result.isOk) {
-            console.error('Failed to remove like');
-          }
+      const isLiked = likedCards.has(cardId);
+      
+      if (isLiked) {
+        const data = likedCards.get(cardId);
+        if (window.dataSdk && data.__backendId) {
+          await window.dataSdk.delete(data);
         }
       } else {
-        // Add like - check limit first
-        if (likedCards.size >= 999) {
-          showToast('Límite de artículos guardados alcanzado');
-          btn.disabled = false;
-          return;
-        }
-        
-        const result = await window.dataSdk.create({
-          card_id: cardId,
-          liked: true,
-          liked_at: new Date().toISOString()
-        });
-        
-        if (!result.isOk) {
-          console.error('Failed to save like');
+        if (window.dataSdk) {
+          await window.dataSdk.create({
+            card_id: cardId,
+            liked: true,
+            liked_at: new Date().toISOString()
+          });
         }
       }
       
-      btn.disabled = false;
+      setTimeout(() => {
+        btn.classList.remove('like-pulse');
+        btn.disabled = false;
+      }, 300);
     }
 
-    // Update card like states
-    function updateCardLikeStates() {
-      const surfaceColor = config.surface_color || defaultConfig.surface_color;
-      const primaryAction = config.primary_action || defaultConfig.primary_action;
-      const secondaryAction = config.secondary_action || defaultConfig.secondary_action;
+    // Render topics menu
+    function renderTopicsMenu() {
+      const container = document.getElementById('topics-list');
+      const primaryColor = config.primary_action;
       
-      document.querySelectorAll('.like-btn').forEach(btn => {
-        const cardId = btn.dataset.cardId;
-        const isLiked = likedCards.has(cardId);
-        
-        btn.dataset.liked = isLiked;
-        btn.style.backgroundColor = isLiked ? primaryAction : 'transparent';
-        btn.style.borderColor = isLiked ? primaryAction : secondaryAction;
-        btn.style.color = isLiked ? surfaceColor : secondaryAction;
-        
-        const svg = btn.querySelector('svg');
-        if (svg) {
-          svg.setAttribute('fill', isLiked ? 'currentColor' : 'none');
-        }
-        
-        const span = btn.querySelector('span');
-        if (span) {
-          span.textContent = isLiked ? 'Guardado' : 'Me gusta';
-        }
-      });
+      container.innerHTML = topics.map(topic => {
+        const isActive = selectedTopics.includes(topic.id);
+        return `
+          <button 
+            type="button"
+            onclick="toggleMenuTopic('${topic.id}')"
+            class="w-full flex items-center gap-3 px-4 py-3 rounded-lg border-2 transition-all"
+            style="background-color: ${isActive ? primaryColor + '20' : 'transparent'}; border-color: ${isActive ? primaryColor : config.secondary_action + '40'};"
+          >
+            <span class="text-lg">${topic.icon}</span>
+            <span class="font-medium text-sm flex-1 text-left">${topic.label}</span>
+          </button>
+        `;
+      }).join('');
     }
 
-    // Update likes count
-    function updateLikesCount() {
-      const countEl = document.getElementById('likes-count');
-      if (countEl) {
-        countEl.textContent = likedCards.size;
+    // Toggle menu topic
+    function toggleMenuTopic(topicId) {
+      const idx = selectedTopics.indexOf(topicId);
+      if (idx > -1) {
+        selectedTopics.splice(idx, 1);
+      } else {
+        selectedTopics.push(topicId);
       }
-    }
-
-    // Setup infinite scroll
-    function setupInfiniteScroll() {
-      const scrollContainer = document.getElementById('scroll-container');
-      
-      scrollContainer.addEventListener('scroll', () => {
-        const { scrollTop, scrollHeight, clientHeight } = scrollContainer;
-        
-        // Check if near bottom
-        if (scrollTop + clientHeight >= scrollHeight - 200) {
-          loadMoreCards();
-        }
-      });
-    }
-
-    // Load more cards (simulated)
-    function loadMoreCards() {
-      // In a real app, this would fetch more content
-      // For demo, we just shuffle and repeat
-      const container = document.getElementById('cards-container');
-      const existingCards = container.querySelectorAll('.knowledge-card').length;
-      
-      if (existingCards >= 24) return; // Limit for demo
-      
-      // Re-render with more cards shuffled
+      renderTopicsMenu();
       renderCards();
     }
 
-    // Menu functions
-    function openMenu() {
-      const menu = document.getElementById('side-menu');
-      const overlay = document.getElementById('menu-overlay');
-      
-      menu.classList.remove('menu-closed');
-      menu.classList.add('menu-open');
-      overlay.classList.remove('opacity-0', 'pointer-events-none');
-      overlay.classList.add('opacity-100', 'pointer-events-auto');
+    // Update UI
+    function updateUI() {
+      document.getElementById('likes-count').textContent = likedCards.size;
+      if (appStarted) {
+        renderCards();
+      }
     }
+
+    // Apply config
+    function applyConfig() {
+      const wrapper = document.getElementById('app-wrapper');
+      wrapper.style.backgroundColor = config.background_color;
+      wrapper.style.color = config.text_color;
+      
+      document.getElementById('main-header').style.backgroundColor = config.background_color + 'E6';
+      document.getElementById('side-menu').style.backgroundColor = config.surface_color;
+      document.getElementById('side-menu').style.color = config.text_color;
+    }
+
+    // Toggle theme
+    document.addEventListener('DOMContentLoaded', () => {
+      const themeBtn = document.getElementById('theme-toggle');
+      if (themeBtn) {
+        themeBtn.addEventListener('click', () => {
+          isDarkMode = !isDarkMode;
+          
+          if (isDarkMode) {
+            config.background_color = '#0F0F0F';
+            config.surface_color = '#1A1A1A';
+            config.text_color = '#FAFAFA';
+          } else {
+            config.background_color = '#FAFAF9';
+            config.surface_color = '#FFFFFF';
+            config.text_color = '#1C1917';
+          }
+          
+          const knob = themeBtn.querySelector('.toggle-knob');
+          if (isDarkMode) {
+            themeBtn.style.backgroundColor = config.primary_action;
+            knob.style.transform = 'translateX(20px)';
+          } else {
+            themeBtn.style.backgroundColor = '#e5e7eb';
+            knob.style.transform = 'translateX(0)';
+          }
+          
+          applyConfig();
+          if (appStarted) renderCards();
+        });
+      }
+      
+      document.getElementById('menu-btn').addEventListener('click', () => {
+        document.getElementById('side-menu').classList.remove('menu-closed');
+        document.getElementById('side-menu').classList.add('menu-open');
+        document.getElementById('menu-overlay').classList.remove('opacity-0', 'pointer-events-none');
+        document.getElementById('menu-overlay').classList.add('opacity-100', 'pointer-events-auto');
+      });
+      
+      renderOnboarding();
+      initElementSDK();
+      initDataSDK();
+    });
 
     function closeMenu() {
-      const menu = document.getElementById('side-menu');
-      const overlay = document.getElementById('menu-overlay');
-      
-      menu.classList.remove('menu-open');
-      menu.classList.add('menu-closed');
-      overlay.classList.remove('opacity-100', 'pointer-events-auto');
-      overlay.classList.add('opacity-0', 'pointer-events-none');
-    }
-
-    // Attach menu button click handler directly
-    function attachMenuHandlers() {
-      const menuBtn = document.getElementById('menu-btn');
-      if (menuBtn) {
-        menuBtn.removeEventListener('click', openMenu);
-        menuBtn.addEventListener('click', openMenu);
-      }
-      
-      const overlay = document.getElementById('menu-overlay');
-      if (overlay) {
-        overlay.removeEventListener('click', closeMenu);
-        overlay.addEventListener('click', closeMenu);
-      }
-      
-      const closeBtn = document.querySelector('[onclick="closeMenu()"]');
-      if (closeBtn) {
-        closeBtn.onclick = closeMenu;
-      }
-    }
-
-    // Theme toggle
-    function toggleTheme() {
-      isDarkMode = !isDarkMode;
-      
-      if (isDarkMode) {
-        config.background_color = '#0F0F0F';
-        config.surface_color = '#1A1A1A';
-        config.text_color = '#FAFAFA';
-      } else {
-        config.background_color = defaultConfig.background_color;
-        config.surface_color = defaultConfig.surface_color;
-        config.text_color = defaultConfig.text_color;
-      }
-      
-      window.elementSdk.setConfig({
-        background_color: config.background_color,
-        surface_color: config.surface_color,
-        text_color: config.text_color
-      });
-      
-      applyConfig();
-    }
-
-    // Update theme toggle visual
-    function updateThemeToggle() {
-      const toggle = document.getElementById('theme-toggle');
-      const knob = toggle.querySelector('.toggle-knob');
-      const surfaceColor = config.surface_color || defaultConfig.surface_color;
-      const primaryAction = config.primary_action || defaultConfig.primary_action;
-      const secondaryAction = config.secondary_action || defaultConfig.secondary_action;
-      
-      if (isDarkMode) {
-        toggle.style.backgroundColor = primaryAction;
-        knob.style.transform = 'translateX(20px)';
-        knob.style.backgroundColor = surfaceColor;
-      } else {
-        toggle.style.backgroundColor = secondaryAction + '40';
-        knob.style.transform = 'translateX(0)';
-        knob.style.backgroundColor = '#FFFFFF';
-      }
-    }
-
-    // Toast notification
-    function showToast(message) {
-      const toast = document.createElement('div');
-      toast.className = 'fixed bottom-24 left-1/2 transform -translate-x-1/2 px-6 py-3 rounded-full text-sm font-medium shadow-lg z-50';
-      toast.style.backgroundColor = config.text_color || defaultConfig.text_color;
-      toast.style.color = config.background_color || defaultConfig.background_color;
-      toast.textContent = message;
-      
-      document.body.appendChild(toast);
-      
-      setTimeout(() => {
-        toast.style.opacity = '0';
-        toast.style.transition = 'opacity 0.3s ease';
-        setTimeout(() => toast.remove(), 300);
-      }, 2500);
-    }
-
-    // Event listeners
-    document.getElementById('menu-btn').addEventListener('click', openMenu);
-
-    // Initialize when DOM is ready
-    if (document.readyState === 'loading') {
-      document.addEventListener('DOMContentLoaded', () => {
-        initApp();
-        attachMenuHandlers();
-      });
-    } else {
-      initApp();
-      attachMenuHandlers();
+      document.getElementById('side-menu').classList.remove('menu-open');
+      document.getElementById('side-menu').classList.add('menu-closed');
+      document.getElementById('menu-overlay').classList.remove('opacity-100', 'pointer-events-auto');
+      document.getElementById('menu-overlay').classList.add('opacity-0', 'pointer-events-none');
     }
   </script>
- <script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9cadce99b4daca02',t:'MTc3MDU4MTgxMC4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+ <script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9cade64b60554cc1',t:'MTc3MDU4Mjc4MC4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
