@@ -1,0 +1,824 @@
+<!doctype html>
+<html lang="es" class="h-full">
+ <head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Knowledge Scroll</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="/_sdk/element_sdk.js"></script>
+  <script src="/_sdk/data_sdk.js"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,400;8..60,500;8..60,600&amp;family=Inter:wght@400;500;600&amp;display=swap" rel="stylesheet">
+  <style>
+    body {
+      box-sizing: border-box;
+    }
+    
+    * {
+      -webkit-tap-highlight-color: transparent;
+    }
+    
+    .scroll-container {
+      scroll-snap-type: y mandatory;
+      -webkit-overflow-scrolling: touch;
+    }
+    
+    .card-item {
+      scroll-snap-align: start;
+      scroll-snap-stop: always;
+    }
+    
+    .fade-in {
+      animation: fadeIn 0.4s ease-out;
+    }
+    
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    
+    .menu-slide {
+      transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    
+    .menu-closed {
+      transform: translateX(-100%);
+    }
+    
+    .menu-open {
+      transform: translateX(0);
+    }
+    
+    .overlay-fade {
+      transition: opacity 0.3s ease;
+    }
+    
+    .like-pulse {
+      animation: likePulse 0.3s ease-out;
+    }
+    
+    @keyframes likePulse {
+      0% { transform: scale(1); }
+      50% { transform: scale(1.2); }
+      100% { transform: scale(1); }
+    }
+    
+    .toggle-switch {
+      transition: background-color 0.2s ease;
+    }
+    
+    .toggle-knob {
+      transition: transform 0.2s ease;
+    }
+    
+    .source-badge {
+      letter-spacing: 0.05em;
+    }
+  </style>
+  <style>@view-transition { navigation: auto; }</style>
+ </head>
+ <body class="h-full">
+  <div id="app-wrapper" class="h-full w-full relative overflow-hidden"><!-- Header -->
+   <header id="main-header" class="fixed top-0 left-0 right-0 z-40 px-5 py-4 flex items-center justify-between backdrop-blur-md"><button id="menu-btn" class="w-10 h-10 flex items-center justify-center rounded-full transition-colors">
+     <svg width="20" height="14" viewbox="0 0 20 14" fill="none"><path d="M1 1h18M1 7h18M1 13h12" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+     </svg></button>
+    <div class="text-center">
+     <h1 id="header-title" class="text-lg font-semibold tracking-tight" style="font-family: 'Inter', sans-serif;">Knowledge Scroll</h1>
+    </div>
+    <div class="w-10 h-10"></div>
+   </header><!-- Menu Overlay -->
+   <div id="menu-overlay" class="fixed inset-0 z-50 pointer-events-none overlay-fade opacity-0">
+    <div class="absolute inset-0 bg-black/40" onclick="closeMenu()"></div>
+   </div><!-- Side Menu -->
+   <aside id="side-menu" class="fixed top-0 left-0 bottom-0 w-80 max-w-[85%] z-50 menu-slide menu-closed overflow-y-auto">
+    <div class="p-6 pt-8"><!-- Menu Header -->
+     <div class="flex items-center justify-between mb-8">
+      <h2 class="text-xl font-semibold" style="font-family: 'Inter', sans-serif;">Preferencias</h2><button onclick="closeMenu()" class="w-8 h-8 flex items-center justify-center rounded-full transition-colors">
+       <svg width="14" height="14" viewbox="0 0 14 14" fill="none"><path d="M1 1l12 12M13 1L1 13" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+       </svg></button>
+     </div><!-- Theme Toggle -->
+     <div class="mb-8">
+      <h3 class="text-xs font-semibold uppercase tracking-wider mb-4 opacity-60">Visualización</h3>
+      <div class="flex items-center justify-between py-3"><span class="font-medium">Modo oscuro</span> <button id="theme-toggle" onclick="toggleTheme()" class="w-12 h-7 rounded-full toggle-switch relative"> <span class="toggle-knob absolute top-1 left-1 w-5 h-5 rounded-full shadow-sm"></span> </button>
+      </div>
+     </div><!-- Topics -->
+     <div>
+      <h3 class="text-xs font-semibold uppercase tracking-wider mb-4 opacity-60">Temas de interés</h3>
+      <div id="topics-list" class="space-y-1"><!-- Topics rendered by JS -->
+      </div>
+     </div><!-- Stats -->
+     <div class="mt-10 pt-6 border-t">
+      <div class="flex items-center gap-3 mb-2">
+       <svg width="18" height="18" viewbox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
+       </svg><span class="text-sm"><span id="likes-count">0</span> artículos guardados</span>
+      </div>
+     </div>
+    </div>
+   </aside><!-- Main Scroll Container -->
+   <main id="scroll-container" class="h-full w-full overflow-y-auto scroll-container pt-16"><!-- Welcome Card -->
+    <section id="welcome-card" class="card-item h-full w-full flex flex-col items-center justify-center px-6 text-center">
+     <div class="max-w-sm">
+      <div class="w-16 h-16 mx-auto mb-6 rounded-2xl flex items-center justify-center">
+       <svg width="32" height="32" viewbox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z" /> <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z" />
+       </svg>
+      </div>
+      <h2 id="welcome-title" class="text-2xl font-semibold mb-3" style="font-family: 'Source Serif 4', serif;">Scroll con propósito</h2>
+      <p id="welcome-tagline" class="text-base leading-relaxed opacity-70 mb-8">Descubre conocimiento real mientras deslizas. Sin ruido, sin distracciones.</p>
+      <div class="flex items-center justify-center gap-2 opacity-50">
+       <svg width="16" height="16" viewbox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M19 12l-7 7-7-7" />
+       </svg><span class="text-sm">Desliza para comenzar</span>
+      </div>
+     </div>
+    </section><!-- Cards Container -->
+    <div id="cards-container"><!-- Cards rendered by JS -->
+    </div><!-- Loading Indicator -->
+    <div id="loading-indicator" class="card-item h-full w-full flex items-center justify-center hidden">
+     <div class="flex flex-col items-center gap-4">
+      <div class="w-8 h-8 border-2 border-current border-t-transparent rounded-full animate-spin opacity-40"></div><span class="text-sm opacity-50">Cargando más conocimiento...</span>
+     </div>
+    </div>
+   </main>
+  </div>
+  <script>
+    // Default configuration
+    const defaultConfig = {
+      app_title: 'Knowledge Scroll',
+      tagline: 'Scroll con propósito',
+      background_color: '#FAFAF9',
+      surface_color: '#FFFFFF',
+      text_color: '#1C1917',
+      primary_action: '#059669',
+      secondary_action: '#78716C'
+    };
+
+    // App state
+    let config = { ...defaultConfig };
+    let isDarkMode = false;
+    let selectedTopics = ['fisica', 'biologia', 'psicologia'];
+    let likedCards = new Map();
+    let currentCardIndex = 0;
+
+    // Topics data organized by categories
+    const topics = [
+      // Ciencias Naturales
+      { id: 'fisica', label: 'Física', icon: '⚛', category: 'Ciencias' },
+      { id: 'biologia', label: 'Biología', icon: '🧬', category: 'Ciencias' },
+      { id: 'quimica', label: 'Química', icon: '⚗', category: 'Ciencias' },
+      { id: 'astronomia', label: 'Astronomía', icon: '☆', category: 'Ciencias' },
+      { id: 'neurociencia', label: 'Neurociencia', icon: '⊗', category: 'Ciencias' },
+      
+      // Humanidades
+      { id: 'filosofia', label: 'Filosofía', icon: '◎', category: 'Humanidades' },
+      { id: 'historia', label: 'Historia', icon: '◈', category: 'Humanidades' },
+      { id: 'literatura', label: 'Literatura', icon: '◐', category: 'Humanidades' },
+      { id: 'arte', label: 'Arte', icon: '◆', category: 'Humanidades' },
+      { id: 'arqueologia', label: 'Arqueología', icon: '◇', category: 'Humanidades' },
+      
+      // Ciencias Sociales
+      { id: 'psicologia', label: 'Psicología', icon: '◉', category: 'Sociales' },
+      { id: 'sociologia', label: 'Sociología', icon: '⊕', category: 'Sociales' },
+      { id: 'economia', label: 'Economía', icon: '⊙', category: 'Sociales' },
+      { id: 'politica', label: 'Política', icon: '◑', category: 'Sociales' },
+      { id: 'antropologia', label: 'Antropología', icon: '⊘', category: 'Sociales' },
+      
+      // Tecnología e Innovación
+      { id: 'tecnologia', label: 'Tecnología', icon: '◇', category: 'Tecnología' },
+      { id: 'inteligencia-artificial', label: 'IA y Machine Learning', icon: '◈', category: 'Tecnología' },
+      { id: 'ciberseguridad', label: 'Ciberseguridad', icon: '◊', category: 'Tecnología' },
+      { id: 'biotecnologia', label: 'Biotecnología', icon: '◆', category: 'Tecnología' },
+      { id: 'programacion', label: 'Programación', icon: '◉', category: 'Tecnología' },
+      
+      // Educación y Aprendizaje
+      { id: 'educacion', label: 'Educación', icon: '○', category: 'Aprendizaje' },
+      { id: 'pedagogia', label: 'Pedagogía', icon: '●', category: 'Aprendizaje' },
+      { id: 'linguistica', label: 'Lingüística', icon: '◎', category: 'Aprendizaje' },
+      { id: 'cognicion', label: 'Cognición', icon: '◐', category: 'Aprendizaje' },
+      { id: 'creatividad', label: 'Creatividad', icon: '◑', category: 'Aprendizaje' },
+      
+      // Pensamiento Crítico y Filosofía
+      { id: 'pensamiento', label: 'Pensamiento crítico', icon: '●', category: 'Crítica' },
+      { id: 'logica', label: 'Lógica', icon: '⊗', category: 'Crítica' },
+      { id: 'etica', label: 'Ética', icon: '⊕', category: 'Crítica' },
+      { id: 'epistemologia', label: 'Epistemología', icon: '⊙', category: 'Crítica' },
+      { id: 'metafisica', label: 'Metafísica', icon: '◊', category: 'Crítica' },
+      
+      // Medio Ambiente y Sostenibilidad
+      { id: 'medio-ambiente', label: 'Medio Ambiente', icon: '◐', category: 'Sostenibilidad' },
+      { id: 'ecologia', label: 'Ecología', icon: '◑', category: 'Sostenibilidad' },
+      { id: 'climatologia', label: 'Climatología', icon: '◎', category: 'Sostenibilidad' }
+    ];
+
+    // Knowledge cards database
+    const knowledgeBase = [
+      {
+        id: 'card-001',
+        topic: 'psicologia',
+        title: 'La memoria de trabajo en el aprendizaje',
+        sourceType: 'Libro gratuito',
+        sourceName: 'Make It Stick — Brown, Roediger & McDaniel',
+        content: 'La memoria de trabajo puede retener aproximadamente 4 elementos simultáneamente. Cuando intentamos aprender material nuevo, este límite determina cuánta información podemos procesar antes de que comience a desvanecerse. La práctica espaciada ayuda a transferir información a la memoria de largo plazo, liberando capacidad para nuevo aprendizaje.',
+        url: 'https://www.retrievalpractice.org/make-it-stick'
+      },
+      {
+        id: 'card-002',
+        topic: 'ciencia',
+        title: 'El efecto de la privación del sueño',
+        sourceType: 'Estudio académico',
+        sourceName: 'Nature Reviews Neuroscience',
+        content: 'Una sola noche sin dormir reduce la capacidad del hipocampo para formar nuevos recuerdos en aproximadamente un 40%. Durante el sueño profundo, el cerebro consolida la información aprendida durante el día, transfiriéndola del almacenamiento temporal al permanente. Este proceso es esencial para el aprendizaje efectivo.',
+        url: 'https://www.nature.com/nrn/'
+      },
+      {
+        id: 'card-003',
+        topic: 'educacion',
+        title: 'El testing effect',
+        sourceType: 'PDF académico',
+        sourceName: 'Cognitive Psychology — Roediger & Karpicke',
+        content: 'Evaluarse a uno mismo sobre material estudiado produce mejor retención a largo plazo que simplemente releerlo. Este fenómeno, llamado "testing effect", demuestra que el acto de recuperar información de la memoria fortalece las conexiones neuronales asociadas, haciendo que el conocimiento sea más accesible en el futuro.',
+        url: 'https://psycnet.apa.org/'
+      },
+      {
+        id: 'card-004',
+        topic: 'filosofia',
+        title: 'La aporía socrática',
+        sourceType: 'Libro gratuito',
+        sourceName: 'Diálogos de Platón — Proyecto Gutenberg',
+        content: 'Sócrates empleaba la aporía —un estado de perplejidad— como herramienta pedagógica. Al demostrar que sus interlocutores no sabían lo que creían saber, creaba el espacio mental necesario para el verdadero aprendizaje. El reconocimiento de la propia ignorancia es el primer paso hacia la sabiduría.',
+        url: 'https://www.gutenberg.org/ebooks/author/93'
+      },
+      {
+        id: 'card-005',
+        topic: 'tecnologia',
+        title: 'La arquitectura de Von Neumann',
+        sourceType: 'Blog educativo',
+        sourceName: 'Computer History Museum',
+        content: 'Prácticamente todas las computadoras modernas siguen la arquitectura propuesta por John von Neumann en 1945: una unidad de procesamiento, memoria que almacena tanto datos como instrucciones, y mecanismos de entrada/salida. Esta idea revolucionaria de almacenar el programa en memoria permitió la computación programable como la conocemos.',
+        url: 'https://computerhistory.org/'
+      },
+      {
+        id: 'card-006',
+        topic: 'historia',
+        title: 'La Biblioteca de Alejandría',
+        sourceType: 'Artículo divulgativo',
+        sourceName: 'Encyclopedia Britannica',
+        content: 'La Biblioteca de Alejandría no fue destruida en un solo evento catastrófico. Los registros históricos sugieren un declive gradual durante varios siglos, causado por recortes de fondos, conflictos políticos y cambios culturales. En su apogeo, contenía aproximadamente 400,000 rollos de papiro, representando gran parte del conocimiento del mundo antiguo.',
+        url: 'https://www.britannica.com/topic/Library-of-Alexandria'
+      },
+      {
+        id: 'card-007',
+        topic: 'pensamiento',
+        title: 'El sesgo de confirmación',
+        sourceType: 'Libro gratuito',
+        sourceName: 'Thinking, Fast and Slow — Daniel Kahneman',
+        content: 'Tendemos a buscar, interpretar y recordar información que confirma nuestras creencias preexistentes. Este sesgo de confirmación opera automáticamente y afecta incluso a expertos en sus campos. La mejor defensa es buscar activamente evidencia que contradiga nuestras hipótesis favoritas.',
+        url: 'https://www.nobelprize.org/prizes/economic-sciences/2002/kahneman/'
+      },
+      {
+        id: 'card-008',
+        topic: 'ciencia',
+        title: 'La neuroplasticidad cerebral',
+        sourceType: 'Estudio académico',
+        sourceName: 'Journal of Neuroscience',
+        content: 'El cerebro adulto mantiene la capacidad de formar nuevas conexiones neuronales durante toda la vida. Esta neuroplasticidad permite el aprendizaje continuo y la recuperación de lesiones cerebrales. La práctica repetida de habilidades específicas aumenta la densidad de materia gris en las áreas cerebrales correspondientes.',
+        url: 'https://www.jneurosci.org/'
+      },
+      {
+        id: 'card-009',
+        topic: 'psicologia',
+        title: 'El flujo (Flow State)',
+        sourceType: 'Libro gratuito',
+        sourceName: 'Flow — Mihaly Csikszentmihalyi',
+        content: 'El estado de flujo ocurre cuando una tarea presenta un nivel de desafío que coincide exactamente con nuestras habilidades. En este estado, perdemos la noción del tiempo, la autoconciencia disminuye, y el rendimiento se optimiza. La clave es encontrar actividades que no sean ni demasiado fáciles ni demasiado difíciles.',
+        url: 'https://www.pursuit-of-happiness.org/history-of-happiness/mihaly-csikszentmihalyi/'
+      },
+      {
+        id: 'card-010',
+        topic: 'educacion',
+        title: 'La zona de desarrollo próximo',
+        sourceType: 'PDF académico',
+        sourceName: 'Mind in Society — Lev Vygotsky',
+        content: 'Vygotsky definió la zona de desarrollo próximo como la distancia entre lo que un estudiante puede hacer solo y lo que puede lograr con ayuda. El aprendizaje más efectivo ocurre en esta zona, donde el apoyo adecuado (andamiaje) permite alcanzar nuevas competencias que eventualmente se vuelven independientes.',
+        url: 'https://www.simplypsychology.org/vygotsky.html'
+      },
+      {
+        id: 'card-011',
+        topic: 'filosofia',
+        title: 'La navaja de Ockham',
+        sourceType: 'Blog educativo',
+        sourceName: 'Stanford Encyclopedia of Philosophy',
+        content: 'Guillermo de Ockham propuso que, ante explicaciones igualmente válidas, se debe preferir la más simple. Este principio de parsimonia no garantiza la verdad, pero guía el pensamiento científico: las teorías que requieren menos suposiciones son más fáciles de probar y refutar, acelerando el progreso del conocimiento.',
+        url: 'https://plato.stanford.edu/entries/ockham/'
+      },
+      {
+        id: 'card-012',
+        topic: 'tecnologia',
+        title: 'El problema de la parada',
+        sourceType: 'Artículo divulgativo',
+        sourceName: 'MIT Technology Review',
+        content: 'Alan Turing demostró en 1936 que es imposible crear un algoritmo universal que determine si cualquier programa terminará o entrará en un bucle infinito. Este resultado fundamental establece límites a lo que las computadoras pueden calcular y tiene implicaciones profundas para la inteligencia artificial y la verificación de software.',
+        url: 'https://www.technologyreview.com/'
+      }
+    ];
+
+    // Data handler for SDK
+    const dataHandler = {
+      onDataChanged(data) {
+        likedCards.clear();
+        data.forEach(item => {
+          likedCards.set(item.card_id, item);
+        });
+        updateLikesCount();
+        updateCardLikeStates();
+      }
+    };
+
+    // Initialize app
+    async function initApp() {
+      // Initialize Element SDK
+      window.elementSdk.init({
+        defaultConfig,
+        onConfigChange: async (newConfig) => {
+          config = { ...defaultConfig, ...newConfig };
+          applyConfig();
+        },
+        mapToCapabilities: (cfg) => ({
+          recolorables: [
+            {
+              get: () => cfg.background_color || defaultConfig.background_color,
+              set: (v) => { cfg.background_color = v; window.elementSdk.setConfig({ background_color: v }); }
+            },
+            {
+              get: () => cfg.surface_color || defaultConfig.surface_color,
+              set: (v) => { cfg.surface_color = v; window.elementSdk.setConfig({ surface_color: v }); }
+            },
+            {
+              get: () => cfg.text_color || defaultConfig.text_color,
+              set: (v) => { cfg.text_color = v; window.elementSdk.setConfig({ text_color: v }); }
+            },
+            {
+              get: () => cfg.primary_action || defaultConfig.primary_action,
+              set: (v) => { cfg.primary_action = v; window.elementSdk.setConfig({ primary_action: v }); }
+            },
+            {
+              get: () => cfg.secondary_action || defaultConfig.secondary_action,
+              set: (v) => { cfg.secondary_action = v; window.elementSdk.setConfig({ secondary_action: v }); }
+            }
+          ],
+          borderables: [],
+          fontEditable: undefined,
+          fontSizeable: undefined
+        }),
+        mapToEditPanelValues: (cfg) => new Map([
+          ['app_title', cfg.app_title || defaultConfig.app_title],
+          ['tagline', cfg.tagline || defaultConfig.tagline]
+        ])
+      });
+
+      // Initialize Data SDK
+      const initResult = await window.dataSdk.init(dataHandler);
+      if (!initResult.isOk) {
+        console.error('Failed to initialize data SDK');
+      }
+
+      // Render topics
+      renderTopics();
+      
+      // Render initial cards
+      renderCards();
+      
+      // Setup infinite scroll
+      setupInfiniteScroll();
+      
+      // Apply initial config
+      applyConfig();
+    }
+
+    // Apply configuration to UI
+    function applyConfig() {
+      const bgColor = config.background_color || defaultConfig.background_color;
+      const surfaceColor = config.surface_color || defaultConfig.surface_color;
+      const textColor = config.text_color || defaultConfig.text_color;
+      const primaryAction = config.primary_action || defaultConfig.primary_action;
+      const secondaryAction = config.secondary_action || defaultConfig.secondary_action;
+      
+      // Apply to app wrapper
+      const wrapper = document.getElementById('app-wrapper');
+      wrapper.style.backgroundColor = bgColor;
+      wrapper.style.color = textColor;
+      
+      // Apply to header
+      const header = document.getElementById('main-header');
+      header.style.backgroundColor = bgColor + 'E6';
+      
+      // Apply to menu
+      const menu = document.getElementById('side-menu');
+      menu.style.backgroundColor = surfaceColor;
+      menu.style.color = textColor;
+      
+      // Apply to cards
+      document.querySelectorAll('.knowledge-card').forEach(card => {
+        card.style.backgroundColor = surfaceColor;
+        card.style.color = textColor;
+      });
+      
+      // Apply to like buttons
+      document.querySelectorAll('.like-btn').forEach(btn => {
+        const isLiked = btn.dataset.liked === 'true';
+        if (isLiked) {
+          btn.style.backgroundColor = primaryAction;
+          btn.style.color = surfaceColor;
+        } else {
+          btn.style.backgroundColor = 'transparent';
+          btn.style.borderColor = secondaryAction;
+          btn.style.color = secondaryAction;
+        }
+      });
+      
+      // Apply to topic toggles
+      document.querySelectorAll('.topic-toggle').forEach(toggle => {
+        const isActive = toggle.dataset.active === 'true';
+        if (isActive) {
+          toggle.style.backgroundColor = primaryAction + '20';
+          toggle.style.borderColor = primaryAction;
+        } else {
+          toggle.style.backgroundColor = 'transparent';
+          toggle.style.borderColor = secondaryAction + '40';
+        }
+      });
+      
+      // Apply to source badges
+      document.querySelectorAll('.source-badge').forEach(badge => {
+        badge.style.backgroundColor = primaryAction + '15';
+        badge.style.color = primaryAction;
+      });
+      
+      // Apply to learn more links
+      document.querySelectorAll('.learn-more-link').forEach(link => {
+        link.style.color = primaryAction;
+      });
+      
+      // Update text content
+      document.getElementById('header-title').textContent = config.app_title || defaultConfig.app_title;
+      document.getElementById('welcome-tagline').textContent = config.tagline || defaultConfig.tagline;
+      
+      // Update theme toggle
+      updateThemeToggle();
+    }
+
+    // Render topics in menu
+    function renderTopics() {
+      const container = document.getElementById('topics-list');
+      const secondaryAction = config.secondary_action || defaultConfig.secondary_action;
+      const primaryAction = config.primary_action || defaultConfig.primary_action;
+      const textColor = config.text_color || defaultConfig.text_color;
+      
+      // Group topics by category
+      const grouped = {};
+      topics.forEach(topic => {
+        const cat = topic.category || 'Otros';
+        if (!grouped[cat]) grouped[cat] = [];
+        grouped[cat].push(topic);
+      });
+      
+      let html = '';
+      Object.entries(grouped).forEach(([category, categoryTopics]) => {
+        html += `<div class="mb-6">
+          <h4 class="text-xs font-bold uppercase tracking-widest mb-3 opacity-40" style="font-family: 'Inter', sans-serif;">${category}</h4>
+          <div class="space-y-2">`;
+        
+        categoryTopics.forEach(topic => {
+          const isActive = selectedTopics.includes(topic.id);
+          html += `
+            <button 
+              onclick="toggleTopic('${topic.id}')" 
+              class="topic-toggle w-full flex items-center gap-3 px-4 py-3 rounded-lg border-2 transition-all"
+              data-topic="${topic.id}"
+              data-active="${isActive}"
+              style="background-color: ${isActive ? primaryAction + '20' : 'transparent'}; border-color: ${isActive ? primaryAction : secondaryAction + '40'};"
+            >
+              <span class="text-lg">${topic.icon}</span>
+              <span class="font-medium text-sm flex-1 text-left">${topic.label}</span>
+              <span>
+                ${isActive ? `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="${primaryAction}" stroke-width="2.5"><path d="M20 6L9 17l-5-5"/></svg>` : ''}
+              </span>
+            </button>
+          `;
+        });
+        
+        html += `</div></div>`;
+      });
+      
+      container.innerHTML = html;
+    }
+
+    // Toggle topic selection
+    function toggleTopic(topicId) {
+      if (selectedTopics.includes(topicId)) {
+        if (selectedTopics.length > 1) {
+          selectedTopics = selectedTopics.filter(t => t !== topicId);
+        }
+      } else {
+        selectedTopics.push(topicId);
+      }
+      renderTopics();
+      applyConfig();
+    }
+
+    // Render knowledge cards
+    function renderCards() {
+      const container = document.getElementById('cards-container');
+      const surfaceColor = config.surface_color || defaultConfig.surface_color;
+      const textColor = config.text_color || defaultConfig.text_color;
+      const primaryAction = config.primary_action || defaultConfig.primary_action;
+      const secondaryAction = config.secondary_action || defaultConfig.secondary_action;
+      
+      // Filter cards by selected topics and shuffle
+      const filteredCards = knowledgeBase
+        .filter(card => selectedTopics.includes(card.topic))
+        .sort(() => Math.random() - 0.5);
+      
+      container.innerHTML = filteredCards.map((card, index) => {
+        const isLiked = likedCards.has(card.id);
+        const topicData = topics.find(t => t.id === card.topic);
+        
+        return `
+          <article 
+            class="knowledge-card card-item h-full w-full flex flex-col px-6 py-8 fade-in"
+            style="background-color: ${surfaceColor}; color: ${textColor}; animation-delay: ${index * 0.1}s;"
+            data-card-id="${card.id}"
+          >
+            <div class="flex-1 flex flex-col justify-center max-w-lg mx-auto w-full">
+              
+              <!-- Source Badge -->
+              <div class="mb-6">
+                <span class="source-badge inline-block px-3 py-1.5 rounded-full text-xs font-semibold uppercase" style="background-color: ${primaryAction}15; color: ${primaryAction};">
+                  ${card.sourceType}
+                </span>
+              </div>
+              
+              <!-- Title -->
+              <h2 class="text-2xl font-semibold mb-4 leading-tight" style="font-family: 'Source Serif 4', serif;">
+                ${card.title}
+              </h2>
+              
+              <!-- Source -->
+              <p class="text-sm mb-6 opacity-60" style="font-family: 'Inter', sans-serif;">
+                ${card.sourceName}
+              </p>
+              
+              <!-- Content -->
+              <p class="text-base leading-relaxed mb-8 opacity-80" style="font-family: 'Source Serif 4', serif; line-height: 1.8;">
+                ${card.content}
+              </p>
+              
+              <!-- Actions -->
+              <div class="flex items-center gap-4 pt-4 border-t" style="border-color: ${secondaryAction}20;">
+                
+                <!-- Learn More -->
+                <a 
+                  href="${card.url}" 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  class="learn-more-link flex items-center gap-2 text-sm font-medium transition-opacity hover:opacity-70"
+                  style="color: ${primaryAction};"
+                >
+                  <span>Saber más</span>
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/>
+                    <polyline points="15 3 21 3 21 9"/>
+                    <line x1="10" y1="14" x2="21" y2="3"/>
+                  </svg>
+                </a>
+                
+                <!-- Like Button -->
+                <button 
+                  onclick="toggleLike('${card.id}')"
+                  class="like-btn ml-auto flex items-center gap-2 px-4 py-2 rounded-full border-2 text-sm font-medium transition-all"
+                  data-card-id="${card.id}"
+                  data-liked="${isLiked}"
+                  style="background-color: ${isLiked ? primaryAction : 'transparent'}; border-color: ${isLiked ? primaryAction : secondaryAction}; color: ${isLiked ? surfaceColor : secondaryAction};"
+                >
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="${isLiked ? 'currentColor' : 'none'}" stroke="currentColor" stroke-width="2">
+                    <path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3zM7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3"/>
+                  </svg>
+                  <span>${isLiked ? 'Guardado' : 'Me gusta'}</span>
+                </button>
+                
+              </div>
+              
+              <!-- Topic Tag -->
+              <div class="mt-6 flex items-center gap-2 opacity-40">
+                <span class="text-xs">${topicData?.icon || '○'}</span>
+                <span class="text-xs font-medium uppercase tracking-wide">${topicData?.label || card.topic}</span>
+              </div>
+              
+            </div>
+            
+            <!-- Scroll Indicator -->
+            <div class="flex items-center justify-center gap-2 pt-6 opacity-30">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M12 5v14M19 12l-7 7-7-7"/>
+              </svg>
+            </div>
+            
+          </article>
+        `;
+      }).join('');
+    }
+
+    // Toggle like status
+    async function toggleLike(cardId) {
+      const btn = document.querySelector(`.like-btn[data-card-id="${cardId}"]`);
+      if (!btn) return;
+      
+      const isCurrentlyLiked = likedCards.has(cardId);
+      
+      // Add animation
+      btn.classList.add('like-pulse');
+      setTimeout(() => btn.classList.remove('like-pulse'), 300);
+      
+      // Disable button during operation
+      btn.disabled = true;
+      
+      if (isCurrentlyLiked) {
+        // Remove like
+        const likeData = likedCards.get(cardId);
+        if (likeData && likeData.__backendId) {
+          const result = await window.dataSdk.delete(likeData);
+          if (!result.isOk) {
+            console.error('Failed to remove like');
+          }
+        }
+      } else {
+        // Add like - check limit first
+        if (likedCards.size >= 999) {
+          showToast('Límite de artículos guardados alcanzado');
+          btn.disabled = false;
+          return;
+        }
+        
+        const result = await window.dataSdk.create({
+          card_id: cardId,
+          liked: true,
+          liked_at: new Date().toISOString()
+        });
+        
+        if (!result.isOk) {
+          console.error('Failed to save like');
+        }
+      }
+      
+      btn.disabled = false;
+    }
+
+    // Update card like states
+    function updateCardLikeStates() {
+      const surfaceColor = config.surface_color || defaultConfig.surface_color;
+      const primaryAction = config.primary_action || defaultConfig.primary_action;
+      const secondaryAction = config.secondary_action || defaultConfig.secondary_action;
+      
+      document.querySelectorAll('.like-btn').forEach(btn => {
+        const cardId = btn.dataset.cardId;
+        const isLiked = likedCards.has(cardId);
+        
+        btn.dataset.liked = isLiked;
+        btn.style.backgroundColor = isLiked ? primaryAction : 'transparent';
+        btn.style.borderColor = isLiked ? primaryAction : secondaryAction;
+        btn.style.color = isLiked ? surfaceColor : secondaryAction;
+        
+        const svg = btn.querySelector('svg');
+        if (svg) {
+          svg.setAttribute('fill', isLiked ? 'currentColor' : 'none');
+        }
+        
+        const span = btn.querySelector('span');
+        if (span) {
+          span.textContent = isLiked ? 'Guardado' : 'Me gusta';
+        }
+      });
+    }
+
+    // Update likes count
+    function updateLikesCount() {
+      const countEl = document.getElementById('likes-count');
+      if (countEl) {
+        countEl.textContent = likedCards.size;
+      }
+    }
+
+    // Setup infinite scroll
+    function setupInfiniteScroll() {
+      const scrollContainer = document.getElementById('scroll-container');
+      
+      scrollContainer.addEventListener('scroll', () => {
+        const { scrollTop, scrollHeight, clientHeight } = scrollContainer;
+        
+        // Check if near bottom
+        if (scrollTop + clientHeight >= scrollHeight - 200) {
+          loadMoreCards();
+        }
+      });
+    }
+
+    // Load more cards (simulated)
+    function loadMoreCards() {
+      // In a real app, this would fetch more content
+      // For demo, we just shuffle and repeat
+      const container = document.getElementById('cards-container');
+      const existingCards = container.querySelectorAll('.knowledge-card').length;
+      
+      if (existingCards >= 24) return; // Limit for demo
+      
+      // Re-render with more cards shuffled
+      renderCards();
+    }
+
+    // Menu functions
+    function openMenu() {
+      const menu = document.getElementById('side-menu');
+      const overlay = document.getElementById('menu-overlay');
+      
+      menu.classList.remove('menu-closed');
+      menu.classList.add('menu-open');
+      overlay.classList.remove('opacity-0', 'pointer-events-none');
+      overlay.classList.add('opacity-100', 'pointer-events-auto');
+    }
+
+    function closeMenu() {
+      const menu = document.getElementById('side-menu');
+      const overlay = document.getElementById('menu-overlay');
+      
+      menu.classList.remove('menu-open');
+      menu.classList.add('menu-closed');
+      overlay.classList.remove('opacity-100', 'pointer-events-auto');
+      overlay.classList.add('opacity-0', 'pointer-events-none');
+    }
+
+    // Theme toggle
+    function toggleTheme() {
+      isDarkMode = !isDarkMode;
+      
+      if (isDarkMode) {
+        config.background_color = '#0F0F0F';
+        config.surface_color = '#1A1A1A';
+        config.text_color = '#FAFAFA';
+      } else {
+        config.background_color = defaultConfig.background_color;
+        config.surface_color = defaultConfig.surface_color;
+        config.text_color = defaultConfig.text_color;
+      }
+      
+      window.elementSdk.setConfig({
+        background_color: config.background_color,
+        surface_color: config.surface_color,
+        text_color: config.text_color
+      });
+      
+      applyConfig();
+    }
+
+    // Update theme toggle visual
+    function updateThemeToggle() {
+      const toggle = document.getElementById('theme-toggle');
+      const knob = toggle.querySelector('.toggle-knob');
+      const surfaceColor = config.surface_color || defaultConfig.surface_color;
+      const primaryAction = config.primary_action || defaultConfig.primary_action;
+      const secondaryAction = config.secondary_action || defaultConfig.secondary_action;
+      
+      if (isDarkMode) {
+        toggle.style.backgroundColor = primaryAction;
+        knob.style.transform = 'translateX(20px)';
+        knob.style.backgroundColor = surfaceColor;
+      } else {
+        toggle.style.backgroundColor = secondaryAction + '40';
+        knob.style.transform = 'translateX(0)';
+        knob.style.backgroundColor = '#FFFFFF';
+      }
+    }
+
+    // Toast notification
+    function showToast(message) {
+      const toast = document.createElement('div');
+      toast.className = 'fixed bottom-24 left-1/2 transform -translate-x-1/2 px-6 py-3 rounded-full text-sm font-medium shadow-lg z-50';
+      toast.style.backgroundColor = config.text_color || defaultConfig.text_color;
+      toast.style.color = config.background_color || defaultConfig.background_color;
+      toast.textContent = message;
+      
+      document.body.appendChild(toast);
+      
+      setTimeout(() => {
+        toast.style.opacity = '0';
+        toast.style.transition = 'opacity 0.3s ease';
+        setTimeout(() => toast.remove(), 300);
+      }, 2500);
+    }
+
+    // Event listeners
+    document.getElementById('menu-btn').addEventListener('click', openMenu);
+
+    // Initialize
+    initApp();
+  </script>
+ <script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9cadc43c565ad875',t:'MTc3MDU4MTM4NS4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</html>
