@@ -3,15 +3,15 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="description" content="Essence - Scroll infinito de conocimiento">
     <meta name="theme-color" content="#000000">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    
-    <title>Essence | Knowledge Stream</title>
-    
+    <title>Essence | Knowledge OS</title>
+
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Merriweather:ital,wght@0,300;0,400;0,700;1,400&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&family=Manrope:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 
     <script>
         tailwind.config = {
@@ -19,23 +19,31 @@
             theme: {
                 extend: {
                     fontFamily: {
-                        serif: ['Merriweather', 'serif'],
-                        sans: ['Inter', 'sans-serif'],
+                        serif: ['"Libre Baskerville"', 'serif'],
+                        sans: ['"Manrope"', 'sans-serif'],
                     },
                     colors: {
-                        brand: {
-                            DEFAULT: '#3B82F6',
-                            dark: '#1d4ed8',
-                            light: '#60a5fa'
-                        },
+                        // Paleta "Dark Academia"
+                        bg: '#050505',
                         surface: '#121212',
-                        surfaceHighlight: '#1E1E1E'
+                        surfaceHigh: '#1E1E1E',
+                        primary: '#3B82F6', // Azul eléctrico suave
+                        accent: '#F43F5E', // Rosa coral para likes
+                        textMain: '#EAEAEA',
+                        textMuted: '#A3A3A3',
+                        border: '#262626'
                     },
                     height: {
-                        'screen-dvh': '100dvh', /* Clave para móvil */
+                        'screen-dvh': '100dvh', // Altura dinámica real en móviles
                     },
-                    screens: {
-                        'xs': '375px',
+                    animation: {
+                        'fade-in': 'fadeIn 0.7s cubic-bezier(0.16, 1, 0.3, 1) forwards',
+                        'slide-up': 'slideUp 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards',
+                        'pulse-slow': 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+                    },
+                    keyframes: {
+                        fadeIn: { '0%': { opacity: '0' }, '100%': { opacity: '1' } },
+                        slideUp: { '0%': { transform: 'translateY(20px)', opacity: '0' }, '100%': { transform: 'translateY(0)', opacity: '1' } }
                     }
                 }
             }
@@ -43,611 +51,662 @@
     </script>
 
     <style>
-        /* --- CORE STYLES & RESET --- */
-        :root {
-            --sat: env(safe-area-inset-top);
-            --sab: env(safe-area-inset-bottom);
+        /* Reset y Base */
+        * { -webkit-tap-highlight-color: transparent; }
+        html { height: 100%; overflow: hidden; }
+        body { 
+            height: 100%; 
+            overflow: hidden; 
+            background-color: #050505; 
+            color: #EAEAEA;
+            /* Prevención de rebote en iOS */
+            overscroll-behavior-y: none;
         }
 
-        html, body {
-            margin: 0;
-            padding: 0;
-            background-color: #000;
-            color: #fff;
-            overflow: hidden; /* Previene scroll del body, solo el contenedor scrollea */
-            -webkit-font-smoothing: antialiased;
-            touch-action: pan-y; /* Mejora rendimiento touch */
-        }
-
-        /* Ocultar barras de scroll pero permitir funcionalidad */
-        .no-scrollbar::-webkit-scrollbar { display: none; }
-        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
-
-        /* SCROLL SNAP ENGINE */
-        #feed-container {
-            height: 100dvh; /* Dynamic Viewport Height */
+        /* Contenedor Maestro del Scroll (SNAP) */
+        #feed-master {
+            height: 100dvh; /* Dynamic Viewport Height: Clave para Safari iOS */
             width: 100vw;
             overflow-y: scroll;
             scroll-snap-type: y mandatory;
             scroll-behavior: smooth;
-            position: relative;
-            z-index: 10;
+            scrollbar-width: none; /* Firefox */
         }
+        #feed-master::-webkit-scrollbar { display: none; /* Chrome/Safari */ }
 
-        .snap-card {
+        /* Tarjeta Individual */
+        .knowledge-card {
             scroll-snap-align: start;
-            scroll-snap-stop: always; /* Fuerza a parar en cada tarjeta */
+            scroll-snap-stop: always;
             height: 100dvh;
-            width: 100vw;
+            width: 100%;
             position: relative;
+            overflow: hidden;
             display: flex;
             flex-direction: column;
-            overflow: hidden;
+            /* Fondo base por si no carga imagen */
+            background: radial-gradient(circle at center, #1a1a1a 0%, #000000 100%);
         }
 
-        /* TEXT CLAMPING (Puntos suspensivos elegantes) */
-        .line-clamp-custom {
+        /* Glassmorphism Real */
+        .glass {
+            background: rgba(20, 20, 20, 0.65);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+
+        /* Gradientes de Legibilidad de Texto */
+        .text-overlay-gradient {
+            background: linear-gradient(
+                to top,
+                rgba(0,0,0,1) 0%,
+                rgba(0,0,0,0.8) 40%,
+                rgba(0,0,0,0.4) 70%,
+                rgba(0,0,0,0) 100%
+            );
+        }
+
+        /* Utilidad para limitar líneas de texto */
+        .clamp-text {
             display: -webkit-box;
-            -webkit-line-clamp: 8; /* Max lineas antes de cortar */
+            -webkit-line-clamp: 10; /* Máximo líneas antes de cortar */
             -webkit-box-orient: vertical;
             overflow: hidden;
         }
-
-        /* GLASSMORPHISM */
-        .glass-panel {
-            background: rgba(20, 20, 20, 0.85);
-            backdrop-filter: blur(16px);
-            -webkit-backdrop-filter: blur(16px);
-            border-top: 1px solid rgba(255, 255, 255, 0.1);
+        @media (max-height: 700px) {
+            .clamp-text { -webkit-line-clamp: 6; }
         }
 
-        /* ANIMACIONES */
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-        .animate-enter { animation: fadeIn 0.6s cubic-bezier(0.2, 0.8, 0.2, 1) forwards; }
-
-        /* LOADING SPINNER */
-        .loader {
-            width: 48px;
-            height: 48px;
-            border: 3px solid #FFF;
-            border-bottom-color: transparent;
-            border-radius: 50%;
-            display: inline-block;
-            box-sizing: border-box;
-            animation: rotation 1s linear infinite;
+        /* Animación de carga (Skeleton) */
+        .skeleton {
+            background: linear-gradient(90deg, #1f1f1f 25%, #2a2a2a 50%, #1f1f1f 75%);
+            background-size: 200% 100%;
+            animation: loading 1.5s infinite;
         }
-        @keyframes rotation { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        @keyframes loading { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
 
-        /* Safe Area Padding para botones inferiores */
-        .safe-pb { padding-bottom: calc(1.5rem + var(--sab)); }
+        /* Safe Areas para iPhone X+ */
+        .safe-pb { padding-bottom: env(safe-area-inset-bottom, 20px); }
+        .safe-pt { padding-top: env(safe-area-inset-top, 20px); }
     </style>
 </head>
-<body>
+<body class="antialiased">
 
-    <div id="onboarding-layer" class="fixed inset-0 z-50 bg-black flex flex-col transition-transform duration-700 ease-in-out">
-        
-        <div class="pt-12 px-6 pb-4 bg-gradient-to-b from-black to-transparent z-10">
-            <h1 class="font-serif text-3xl font-bold text-white mb-1">Essence</h1>
-            <p class="text-gray-400 text-sm">Curaduría inteligente de conocimiento.</p>
+    <div id="onboarding-screen" class="fixed inset-0 z-50 bg-bg flex flex-col transition-transform duration-700">
+        <div class="safe-pt px-6 pt-10 pb-4 bg-gradient-to-b from-bg to-transparent z-10">
+            <h1 class="text-4xl font-serif font-bold text-white tracking-tight mb-2">Essence.</h1>
+            <p class="text-textMuted text-sm font-medium">Curaduría de conocimiento inteligente.</p>
         </div>
 
-        <div class="flex-1 overflow-y-auto px-6 pb-32">
-            <p class="text-xs font-bold text-brand uppercase tracking-widest mb-6">Selecciona 3 intereses</p>
+        <div class="flex-1 overflow-y-auto px-6 pb-32 no-scrollbar">
+            <div class="flex justify-between items-center mb-6">
+                <span class="text-xs font-bold text-primary uppercase tracking-widest">Elige 3 intereses</span>
+                <span id="topic-counter" class="text-xs text-textMuted font-mono">0/3</span>
+            </div>
+            
             <div id="topics-grid" class="grid grid-cols-2 gap-3">
                 </div>
         </div>
 
-        <div class="absolute bottom-0 left-0 w-full p-6 bg-gradient-to-t from-black via-black to-transparent safe-pb z-20">
-            <button id="btn-start-app" disabled onclick="App.completeOnboarding()" 
-                class="w-full h-14 rounded-full bg-white text-black font-bold text-lg disabled:opacity-30 disabled:cursor-not-allowed transform active:scale-95 transition-all shadow-lg flex items-center justify-center gap-2">
-                <span>Comenzar</span>
+        <div class="absolute bottom-0 left-0 w-full p-6 bg-gradient-to-t from-bg via-bg to-transparent safe-pb z-20">
+            <button id="btn-start" onclick="App.completeOnboarding()" disabled 
+                class="w-full h-14 rounded-2xl bg-white text-black font-bold text-lg disabled:opacity-30 disabled:cursor-not-allowed transform active:scale-95 transition-all shadow-[0_0_20px_rgba(255,255,255,0.1)] flex items-center justify-center gap-3">
+                <span>Comenzar Experiencia</span>
                 <i data-lucide="arrow-right" class="w-5 h-5"></i>
             </button>
         </div>
     </div>
 
-    <div class="fixed top-0 left-0 w-full z-40 px-5 py-4 flex justify-between items-start pointer-events-none">
-        <div class="pointer-events-auto bg-black/20 backdrop-blur-md px-3 py-1 rounded-full border border-white/10">
-            <span class="text-xs font-bold text-white/80 tracking-widest">ESSENCE</span>
+    <nav class="fixed top-0 left-0 w-full z-40 px-5 pt-4 safe-pt flex justify-between items-start pointer-events-none">
+        <div class="pointer-events-auto glass px-4 py-2 rounded-full flex items-center gap-2 animate-fade-in">
+            <div class="w-2 h-2 rounded-full bg-primary animate-pulse"></div>
+            <span class="text-xs font-bold tracking-widest text-white/90">LIVE</span>
         </div>
-        <button onclick="UI.toggleSidebar()" class="pointer-events-auto p-3 rounded-full bg-black/40 backdrop-blur-md border border-white/10 text-white hover:bg-white/20 transition-colors">
+
+        <button onclick="window.Sidebar.toggle()" class="pointer-events-auto p-3 rounded-full glass text-white hover:bg-white/10 active:scale-90 transition-all shadow-lg">
             <i data-lucide="menu" class="w-6 h-6"></i>
         </button>
+    </nav>
+
+    <main id="feed-master">
+        <div id="initial-loader" class="h-screen w-full flex flex-col items-center justify-center gap-4">
+            <div class="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin"></div>
+            <p class="text-xs text-textMuted uppercase tracking-widest animate-pulse">Calibrando fuentes...</p>
+        </div>
+    </main>
+
+    <div id="infinite-loader" class="fixed bottom-8 left-1/2 -translate-x-1/2 z-30 opacity-0 transition-opacity pointer-events-none safe-pb">
+        <div class="flex gap-2">
+            <div class="w-2 h-2 bg-primary rounded-full animate-bounce" style="animation-delay: 0s"></div>
+            <div class="w-2 h-2 bg-primary rounded-full animate-bounce" style="animation-delay: 0.1s"></div>
+            <div class="w-2 h-2 bg-primary rounded-full animate-bounce" style="animation-delay: 0.2s"></div>
+        </div>
     </div>
 
-    <div id="feed-container" class="no-scrollbar bg-surface">
+    <div id="toast-container" class="fixed top-24 left-1/2 -translate-x-1/2 z-50 flex flex-col gap-2 w-max max-w-[90vw] pointer-events-none">
         </div>
 
-    <div id="infinite-loader" class="fixed bottom-10 left-1/2 -translate-x-1/2 z-30 opacity-0 transition-opacity pointer-events-none">
-        <div class="w-2 h-2 bg-brand rounded-full animate-ping"></div>
-    </div>
-
-    <div id="sidebar-backdrop" onclick="UI.toggleSidebar()" class="fixed inset-0 z-40 bg-black/60 backdrop-blur-sm hidden opacity-0 transition-opacity duration-300"></div>
+    <div id="sidebar-overlay" onclick="window.Sidebar.toggle()" class="fixed inset-0 z-40 bg-black/80 backdrop-blur-sm hidden opacity-0 transition-opacity duration-300"></div>
     
-    <div id="sidebar-panel" class="fixed inset-y-0 right-0 z-50 w-80 glass-panel transform translate-x-full transition-transform duration-300 flex flex-col safe-pb">
-        <div class="p-6 flex justify-between items-center border-b border-white/10">
-            <h2 class="font-serif font-bold text-xl">Mi Biblioteca</h2>
-            <button onclick="UI.toggleSidebar()"><i data-lucide="x" class="w-6 h-6 text-gray-400"></i></button>
+    <aside id="sidebar-panel" class="fixed inset-y-0 right-0 z-50 w-80 glass transform translate-x-full transition-transform duration-300 flex flex-col bg-[#0a0a0a]">
+        <div class="safe-pt px-6 pt-6 pb-4 border-b border-border flex justify-between items-center">
+            <h2 class="font-serif font-bold text-xl text-white">Biblioteca</h2>
+            <button onclick="window.Sidebar.toggle()" class="p-2 -mr-2 text-textMuted hover:text-white"><i data-lucide="x" class="w-6 h-6"></i></button>
         </div>
 
-        <div class="flex-1 overflow-y-auto p-6">
+        <div class="flex-1 overflow-y-auto p-6 no-scrollbar">
             <div class="grid grid-cols-2 gap-3 mb-8">
-                <div class="bg-white/5 p-3 rounded-xl border border-white/5 text-center">
-                    <span id="stat-read" class="block text-2xl font-bold text-brand">0</span>
-                    <span class="text-[10px] uppercase text-gray-400 tracking-wider">Leídos</span>
+                <div class="bg-surfaceHigh p-4 rounded-2xl border border-border text-center">
+                    <span id="stat-views" class="block text-2xl font-bold text-white mb-1">0</span>
+                    <span class="text-[10px] font-bold text-textMuted uppercase tracking-wider">Artículos</span>
                 </div>
-                <div class="bg-white/5 p-3 rounded-xl border border-white/5 text-center">
-                    <span id="stat-saved" class="block text-2xl font-bold text-pink-500">0</span>
-                    <span class="text-[10px] uppercase text-gray-400 tracking-wider">Guardados</span>
+                <div class="bg-surfaceHigh p-4 rounded-2xl border border-border text-center">
+                    <span id="stat-likes" class="block text-2xl font-bold text-accent mb-1">0</span>
+                    <span class="text-[10px] font-bold text-textMuted uppercase tracking-wider">Guardados</span>
                 </div>
             </div>
 
             <div class="mb-8">
-                <h3 class="text-xs font-bold text-gray-500 uppercase mb-3">Tus Temas</h3>
-                <div id="sidebar-topics" class="flex flex-wrap gap-2">
+                <h3 class="text-xs font-bold text-textMuted uppercase mb-4 tracking-widest">Tus Filtros Activos</h3>
+                <div id="active-topics-list" class="flex flex-wrap gap-2">
                     </div>
             </div>
 
-            <div>
-                <h3 class="text-xs font-bold text-gray-500 uppercase mb-3">Ajustes</h3>
-                <div class="space-y-3">
-                    <button onclick="App.clearData()" class="w-full flex items-center justify-between p-3 rounded-lg bg-red-500/10 text-red-400 hover:bg-red-500/20">
-                        <span class="text-sm font-medium">Borrar Datos y Reiniciar</span>
-                        <i data-lucide="trash-2" class="w-4 h-4"></i>
-                    </button>
-                </div>
+            <div class="mt-auto">
+                <button onclick="App.hardReset()" class="w-full py-3 rounded-xl border border-red-900/50 text-red-400 text-sm font-medium hover:bg-red-900/10 transition flex items-center justify-center gap-2">
+                    <i data-lucide="trash" class="w-4 h-4"></i>
+                    Reiniciar Aplicación
+                </button>
+                <p class="text-center text-[10px] text-zinc-700 mt-4">v3.0.0 • Essence Engine</p>
             </div>
         </div>
-        
-        <div class="p-6 border-t border-white/10 text-center">
-            <p class="text-[10px] text-gray-600">v2.4.0 Mobile Optimized</p>
-        </div>
-    </div>
+    </aside>
 
     <script>
         /**
-         * CLASE 1: GESTIÓN DE ESTADO (State Management)
-         * Se encarga de guardar y cargar datos en localStorage.
+         * MÓDULO 1: UTILIDADES (Helpers)
          */
-        class StateManager {
-            constructor() {
-                this.key = 'essence_app_v2';
-                this.data = this.load();
-            }
+        const Utils = {
+            random: (arr) => arr[Math.floor(Math.random() * arr.length)],
+            shuffle: (arr) => arr.sort(() => Math.random() - 0.5),
+            wait: (ms) => new Promise(r => setTimeout(r, ms)),
+            truncate: (str, n) => str.length > n ? str.substr(0, n-1) + "..." : str,
+            
+            // Web Share API Wrapper
+            share: async (data) => {
+                if (navigator.share) {
+                    try { await navigator.share(data); return true; } 
+                    catch (err) { return false; }
+                } else {
+                    // Fallback: Copiar al portapapeles
+                    navigator.clipboard.writeText(data.url);
+                    UI.toast("Enlace copiado al portapapeles");
+                    return true;
+                }
+            },
 
-            load() {
-                const saved = localStorage.getItem(this.key);
-                return saved ? JSON.parse(saved) : {
-                    onboardingComplete: false,
-                    interests: [],
-                    history: [], // IDs de articulos vistos
-                    likes: [],   // Artículos guardados
-                    settings: { fontSize: 'medium' }
-                };
+            // TTS (Text to Speech)
+            speak: (text, btnElement) => {
+                if (window.speechSynthesis.speaking) {
+                    window.speechSynthesis.cancel();
+                    btnElement.classList.remove('text-primary', 'bg-primary/10');
+                    return;
+                }
+                const utterance = new SpeechSynthesisUtterance(text);
+                utterance.lang = 'es-ES';
+                utterance.rate = 1.0;
+                utterance.pitch = 1.0;
+                
+                utterance.onstart = () => btnElement.classList.add('text-primary', 'bg-primary/10');
+                utterance.onend = () => btnElement.classList.remove('text-primary', 'bg-primary/10');
+                
+                window.speechSynthesis.speak(utterance);
             }
+        };
+
+        /**
+         * MÓDULO 2: GESTOR DE ESTADO (Local Storage)
+         */
+        const Store = {
+            key: 'essence_v3_db',
+            state: {
+                onboarding: false,
+                interests: [],
+                history: [], // IDs vistos
+                likes: [],   // Objetos guardados
+            },
+
+            init() {
+                const saved = localStorage.getItem(this.key);
+                if (saved) this.state = JSON.parse(saved);
+            },
 
             save() {
-                localStorage.setItem(this.key, JSON.stringify(this.data));
-            }
-
-            addInterest(topic) {
-                if (!this.data.interests.includes(topic)) {
-                    this.data.interests.push(topic);
-                    this.save();
-                }
-            }
-
-            removeInterest(topic) {
-                this.data.interests = this.data.interests.filter(t => t !== topic);
-                this.save();
-            }
-
-            recordView(id) {
-                if (!this.data.history.includes(id)) {
-                    this.data.history.push(id);
-                    // Mantener historia ligera (últimos 100)
-                    if(this.data.history.length > 100) this.data.history.shift();
-                    this.save();
-                }
-            }
+                localStorage.setItem(this.key, JSON.stringify(this.state));
+                Sidebar.updateUI(); // Actualizar sidebar al guardar
+            },
 
             toggleLike(cardData) {
-                const exists = this.data.likes.find(l => l.id === cardData.id);
-                if (exists) {
-                    this.data.likes = this.data.likes.filter(l => l.id !== cardData.id);
-                    return false; // Removed
-                } else {
-                    this.data.likes.push(cardData);
+                const idx = this.state.likes.findIndex(l => l.id === cardData.id);
+                if (idx > -1) {
+                    this.state.likes.splice(idx, 1);
                     this.save();
-                    return true; // Added
+                    return false;
+                } else {
+                    this.state.likes.push(cardData);
+                    this.save();
+                    return true;
+                }
+            },
+
+            addHistory(id) {
+                if (!this.state.history.includes(id)) {
+                    this.state.history.push(id);
+                    if (this.state.history.length > 200) this.state.history.shift(); // Limite
+                    this.save();
                 }
             }
-
-            reset() {
-                localStorage.removeItem(this.key);
-                location.reload();
-            }
-        }
+        };
 
         /**
-         * CLASE 2: MOTOR DE CONTENIDO (Content Engine)
-         * Conecta con Wikipedia, OpenLibrary y APIs de Citas.
+         * MÓDULO 3: MOTOR DE APIS (El cerebro)
          */
-        class ContentEngine {
-            constructor(stateManager) {
-                this.state = stateManager;
-                this.isFetching = false;
-                this.topicsPool = [
-                    "Psicología", "Astronomía", "Filosofía", "Historia", "Tecnología", 
-                    "Biología", "Economía", "Arte", "Literatura", "Sociología", 
-                    "Física", "Química", "Neurociencia", "Cine", "Arquitectura", 
-                    "Geografía", "Política", "Música", "Matemáticas", "Antropología"
-                ];
-            }
+        const APIManager = {
+            // Fuentes de datos configurables
+            sources: {
+                WIKI: 'https://es.wikipedia.org/w/api.php',
+                ART: 'https://api.artic.edu/api/v1/artworks/search',
+                BOOKS: 'https://openlibrary.org/search.json',
+                GEO: 'https://restcountries.com/v3.1/all' // Cachear esto sería ideal
+            },
 
-            // Selecciona un tema basado en intereses del usuario o aleatorio
-            getTopic() {
-                const userTopics = this.state.data.interests;
-                if (userTopics.length > 0 && Math.random() > 0.2) {
-                    return userTopics[Math.floor(Math.random() * userTopics.length)];
-                }
-                return this.topicsPool[Math.floor(Math.random() * this.topicsPool.length)];
-            }
+            // Estrategia de búsqueda
+            async fetchNext(topics) {
+                const topic = Utils.random(topics);
+                const strategy = Math.random();
 
-            async fetchNextCard() {
-                if (this.isFetching) return null;
-                this.isFetching = true;
-
-                const topic = this.getTopic();
-                let cardData = null;
-
-                // Estrategia de mezcla: 70% Wikipedia, 30% Libros
                 try {
-                    if (Math.random() > 0.3) {
-                        cardData = await this.fetchWikipedia(topic);
-                    } else {
-                        cardData = await this.fetchBook(topic);
-                    }
-
-                    // Fallback si falla la primera opción
-                    if (!cardData) cardData = await this.fetchWikipedia(topic);
-
+                    // 15% Arte, 20% Libros, 15% Geo, 50% Wikipedia
+                    if (strategy < 0.15) return await this.getArt(topic);
+                    if (strategy < 0.35) return await this.getBook(topic);
+                    if (strategy < 0.50) return await this.getGeo(); // Geo suele ser random
+                    return await this.getWiki(topic);
                 } catch (e) {
-                    console.error("Error fetching content:", e);
+                    console.warn("API Error, fallback to Wiki", e);
+                    return await this.getWiki(topic);
                 }
+            },
 
-                this.isFetching = false;
-                return cardData;
-            }
+            // --- FETCHERS ESPECÍFICOS ---
 
-            async fetchWikipedia(topic) {
-                // Paso 1: Buscar
-                const searchRes = await fetch(`https://es.wikipedia.org/w/api.php?action=query&list=search&srsearch=${topic}&format=json&origin=*&srlimit=10`).then(r => r.json());
-                if (!searchRes.query || !searchRes.query.search.length) return null;
+            async getWiki(query) {
+                const url = `${this.sources.WIKI}?action=query&format=json&list=search&srsearch=${query}&origin=*&srlimit=5`;
+                const res = await fetch(url).then(r => r.json());
+                if (!res.query?.search.length) throw new Error("No Wiki results");
 
-                // Filtrar vistos
-                const available = searchRes.query.search.filter(i => !this.state.data.history.includes('wiki_'+i.pageid));
-                const item = available.length > 0 ? available[Math.floor(Math.random() * available.length)] : searchRes.query.search[0];
+                // Filtrar duplicados
+                const available = res.query.search.filter(i => !Store.state.history.includes('wiki_'+i.pageid));
+                const item = available.length ? Utils.random(available) : res.query.search[0];
 
-                // Paso 2: Detalles
-                const details = await fetch(`https://es.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(item.title)}`).then(r => r.json());
-                
-                if(!details.extract || details.extract.length < 50) return null;
+                // Obtener detalles (Imagen + Extracto)
+                const detailUrl = `https://es.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(item.title)}`;
+                const detail = await fetch(detailUrl).then(r => r.json());
 
                 return {
-                    id: 'wiki_' + details.pageid,
+                    id: 'wiki_' + item.pageid,
                     type: 'knowledge',
                     source: 'Wikipedia',
-                    category: topic,
-                    title: details.title,
-                    text: details.extract,
-                    image: details.thumbnail ? details.thumbnail.source : null,
-                    url: details.content_urls.desktop.page
+                    category: query,
+                    title: detail.title,
+                    text: detail.extract,
+                    image: detail.thumbnail?.source || null,
+                    url: detail.content_urls?.desktop?.page || '#'
                 };
-            }
+            },
 
-            async fetchBook(topic) {
-                const res = await fetch(`https://openlibrary.org/search.json?q=${topic}&language=spa&limit=15&fields=key,title,author_name,first_sentence,cover_i`).then(r => r.json());
-                if(!res.docs.length) return null;
-
-                const book = res.docs[Math.floor(Math.random() * res.docs.length)];
-                if(this.state.data.history.includes(book.key)) return null;
-
-                const text = book.first_sentence ? 
-                    (Array.isArray(book.first_sentence) ? book.first_sentence[0] : book.first_sentence) :
-                    `Una obra fundamental de ${book.author_name ? book.author_name[0] : 'Autor desconocido'} sobre el tema ${topic}.`;
+            async getArt(query) {
+                // El arte es visual, buscamos términos generales si el query es muy específico
+                const q = ['Arte', 'Pintura', 'Retrato', 'Paisaje'].includes(query) ? query : 'Painting'; 
+                const url = `${this.sources.ART}?q=${q}&limit=20&fields=id,title,artist_display,image_id,description`;
+                const res = await fetch(url).then(r => r.json());
+                
+                const valid = res.data.filter(i => i.image_id && !Store.state.history.includes('art_'+i.id));
+                if (!valid.length) throw new Error("No Art results");
+                const item = Utils.random(valid);
 
                 return {
-                    id: book.key,
+                    id: 'art_' + item.id,
+                    type: 'art',
+                    source: 'Art Institute Chicago',
+                    category: 'Arte Clásico',
+                    title: item.title,
+                    text: item.description ? item.description.replace(/<[^>]*>?/gm, '') : `Una obra maestra creada por ${item.artist_display}. Observa los detalles de la técnica y la composición.`,
+                    image: `https://www.artic.edu/iiif/2/${item.image_id}/full/843,/0/default.jpg`,
+                    url: `https://www.artic.edu/artworks/${item.id}`
+                };
+            },
+
+            async getBook(query) {
+                const url = `${this.sources.BOOKS}?q=${query}&language=spa&limit=10&fields=key,title,author_name,first_sentence,cover_i`;
+                const res = await fetch(url).then(r => r.json());
+                
+                const valid = res.docs.filter(i => i.cover_i && !Store.state.history.includes(i.key));
+                if (!valid.length) throw new Error("No Book results");
+                const item = Utils.random(valid);
+
+                const text = item.first_sentence 
+                    ? (Array.isArray(item.first_sentence) ? item.first_sentence[0] : item.first_sentence)
+                    : `Obra literaria destacada de ${item.author_name?.[0] || 'Autor desconocido'}. Un libro esencial para entender el tema ${query}.`;
+
+                return {
+                    id: item.key,
                     type: 'book',
                     source: 'Open Library',
-                    category: topic,
-                    title: book.title,
-                    text: text,
-                    image: book.cover_i ? `https://covers.openlibrary.org/b/id/${book.cover_i}-L.jpg` : null,
-                    url: `https://openlibrary.org${book.key}`
+                    category: 'Literatura',
+                    title: item.title,
+                    text: `"${text}"`,
+                    image: `https://covers.openlibrary.org/b/id/${item.cover_i}-L.jpg`,
+                    url: `https://openlibrary.org${item.key}`
+                };
+            },
+
+            async getGeo() {
+                // Cachear esto en memoria sería mejor, pero hacemos fetch
+                const res = await fetch('https://restcountries.com/v3.1/region/americas').then(r => r.json());
+                const item = Utils.random(res);
+                
+                return {
+                    id: 'geo_' + item.cca3,
+                    type: 'geo',
+                    source: 'Datos Mundiales',
+                    category: 'Geografía',
+                    title: item.translations.spa.common,
+                    text: `Capital: ${item.capital?.[0]}. Población: ${item.population.toLocaleString()}. Se encuentra en la subregión de ${item.subregion}. Su bandera tiene colores distintivos de su historia.`,
+                    image: item.flags.svg, // Bandera como imagen
+                    url: item.maps.googleMaps
                 };
             }
-        }
+        };
 
         /**
-         * CLASE 3: UI MANAGER (Controlador de Interfaz)
-         * Genera el HTML, maneja el scroll y los eventos.
+         * MÓDULO 4: RENDERIZADO DE UI (DOM Manipulation)
          */
-        class UIManager {
-            constructor() {
-                this.feedContainer = document.getElementById('feed-container');
-                this.observer = null;
-                this.synth = window.speechSynthesis; // TTS API
-            }
+        const UI = {
+            container: document.getElementById('feed-master'),
+            
+            toast(msg) {
+                const el = document.createElement('div');
+                el.className = "bg-white/10 backdrop-blur text-white px-4 py-2 rounded-lg text-xs font-bold shadow-xl animate-fade-in border border-white/10";
+                el.innerText = msg;
+                document.getElementById('toast-container').appendChild(el);
+                setTimeout(() => el.remove(), 3000);
+            },
 
-            renderCard(data) {
-                const card = document.createElement('div');
-                card.className = "snap-card bg-surface";
-                card.dataset.id = data.id;
+            createCard(data) {
+                const el = document.createElement('article');
+                el.className = 'knowledge-card';
+                el.dataset.id = data.id;
 
-                // Determinar estilo de fondo
-                let bgStyle = '';
+                // Lógica de Imagen de Fondo
+                let bgHTML = '';
                 if (data.image) {
-                    bgStyle = `
-                        <div class="absolute inset-0 z-0">
-                            <img src="${data.image}" class="w-full h-full object-cover opacity-30 blur-sm scale-110" />
-                            <div class="absolute inset-0 bg-gradient-to-t from-surface via-surface/90 to-surface/40"></div>
+                    // Si es bandera (geo) o libro, usamos 'contain' o blur, si es arte 'cover'
+                    const isArt = data.type === 'art';
+                    const isGeo = data.type === 'geo';
+                    
+                    bgHTML = `
+                        <div class="absolute inset-0 z-0 select-none">
+                            <img src="${data.image}" 
+                                 class="w-full h-full object-cover transition-transform duration-[20s] ease-linear scale-100" 
+                                 onload="this.classList.add('scale-110')"
+                                 style="${isGeo ? 'object-fit: cover; opacity: 0.4; filter: blur(10px);' : 'opacity: 0.6;'}"
+                            />
+                            <div class="absolute inset-0 bg-gradient-to-t from-bg via-bg/90 to-bg/30"></div>
+                            <div class="absolute inset-0 bg-black/20"></div>
                         </div>
                     `;
                 }
 
-                // Plantilla HTML de la Tarjeta
-                card.innerHTML = `
-                    ${bgStyle}
+                el.innerHTML = `
+                    ${bgHTML}
                     
-                    <div class="relative z-10 flex flex-col h-full w-full max-w-2xl mx-auto p-6 pt-24 pb-8">
+                    <div class="relative z-10 flex flex-col h-full w-full max-w-lg mx-auto p-6 safe-pt safe-pb">
                         
-                        <div class="flex items-center justify-between mb-8 opacity-0 animate-enter" style="animation-delay: 0.1s">
-                            <span class="px-3 py-1 rounded-full border border-white/20 text-[10px] font-bold uppercase tracking-widest bg-black/30 backdrop-blur">
+                        <div class="mt-16 flex items-center justify-between opacity-0 animate-slide-up" style="animation-delay: 0.1s">
+                            <span class="px-3 py-1 rounded-full border border-white/10 text-[10px] font-bold uppercase tracking-widest bg-black/40 backdrop-blur text-primary">
                                 ${data.category}
                             </span>
-                            <div class="flex items-center gap-2 text-xs text-gray-400 font-medium">
-                                <i data-lucide="${data.type === 'book' ? 'book' : 'globe'}" class="w-3 h-3"></i>
-                                ${data.source}
+                            <div class="flex items-center gap-2 text-[10px] text-textMuted font-medium uppercase tracking-wide bg-black/40 px-2 py-1 rounded-lg backdrop-blur">
+                                <span>${data.source}</span>
                             </div>
                         </div>
 
-                        <div class="flex-1 flex flex-col justify-center animate-enter" style="animation-delay: 0.2s">
-                            <h2 class="text-3xl xs:text-4xl font-serif font-bold leading-tight mb-6 text-white text-shadow">
+                        <div class="flex-1 flex flex-col justify-center my-6 opacity-0 animate-slide-up" style="animation-delay: 0.2s">
+                            <h2 class="text-3xl md:text-5xl font-serif font-bold leading-[1.1] mb-6 text-white text-shadow-lg">
                                 ${data.title}
                             </h2>
-                            <div class="relative">
-                                <p class="text-lg leading-relaxed text-gray-200 font-sans opacity-90 line-clamp-custom">
+                            
+                            <div class="relative group">
+                                <div class="w-12 h-1 bg-primary mb-6 rounded-full opacity-50"></div>
+                                <p class="text-lg md:text-xl leading-relaxed text-textMain font-sans font-light opacity-90 clamp-text">
                                     ${data.text}
                                 </p>
-                                <div class="absolute bottom-0 left-0 w-full h-12 bg-gradient-to-t from-surface to-transparent"></div>
                             </div>
                         </div>
 
-                        <div class="mt-auto pt-8 flex items-center justify-between animate-enter safe-pb" style="animation-delay: 0.3s">
+                        <div class="mt-auto pt-6 flex items-center justify-between border-t border-white/10 opacity-0 animate-slide-up" style="animation-delay: 0.3s">
                             
-                            <a href="${data.url}" target="_blank" class="group flex items-center gap-2 px-5 py-3 rounded-full bg-white/10 hover:bg-white/20 transition-all active:scale-95 border border-white/5">
-                                <span class="text-sm font-bold text-white group-hover:text-brand transition-colors">Leer completo</span>
-                                <i data-lucide="external-link" class="w-4 h-4 text-gray-400 group-hover:text-brand"></i>
+                            <a href="${data.url}" target="_blank" class="flex items-center gap-2 pr-6 py-3 rounded-l-full hover:opacity-80 transition-opacity">
+                                <span class="text-sm font-bold text-white border-b border-primary pb-0.5">Profundizar</span>
+                                <i data-lucide="arrow-up-right" class="w-4 h-4 text-primary"></i>
                             </a>
 
-                            <div class="flex gap-4">
-                                <button onclick="App.speakText('${data.text.replace(/'/g, "\\'")}', this)" class="p-3 rounded-full bg-white/5 border border-white/5 hover:bg-white/10 active:scale-90 transition-all text-gray-300">
-                                    <i data-lucide="volume-2" class="w-6 h-6"></i>
+                            <div class="flex gap-3">
+                                <button onclick="Utils.speak(this.dataset.text, this)" data-text="${data.text.replace(/"/g, '&quot;')}" class="p-3 rounded-full bg-white/5 border border-white/10 active:scale-95 transition hover:bg-white/10">
+                                    <i data-lucide="volume-2" class="w-5 h-5 text-textMuted"></i>
                                 </button>
                                 
-                                <button onclick="App.handleLike(this, '${data.id}')" class="p-3 rounded-full bg-white/5 border border-white/5 hover:bg-white/10 active:scale-90 transition-all text-gray-300">
-                                    <i data-lucide="heart" class="w-6 h-6"></i>
+                                <button onclick="Utils.share({title: '${data.title}', text: '${data.title}', url: '${data.url}'})" class="p-3 rounded-full bg-white/5 border border-white/10 active:scale-95 transition hover:bg-white/10">
+                                    <i data-lucide="share-2" class="w-5 h-5 text-textMuted"></i>
+                                </button>
+
+                                <button onclick="App.handleLike(this, '${data.id}')" class="p-3 rounded-full bg-white/5 border border-white/10 active:scale-95 transition hover:bg-white/10 group">
+                                    <i data-lucide="heart" class="w-5 h-5 text-textMuted group-hover:text-accent transition-colors"></i>
                                 </button>
                             </div>
                         </div>
                     </div>
                 `;
 
-                this.feedContainer.appendChild(card);
+                this.container.appendChild(el);
+                
+                // Observador para Scroll Infinito y Analytics
+                this.observer.observe(el);
                 lucide.createIcons();
+            },
 
-                // Setup Observer for infinite scroll trigger
-                this.observeCard(card);
-            }
-
-            observeCard(card) {
-                // Si ya hay observador previo en el penúltimo elemento, desconectarlo
-                // (Simplificado: observamos cada tarjeta y si intersecta, vemos si es la última)
-                const observer = new IntersectionObserver((entries) => {
+            initObserver() {
+                this.observer = new IntersectionObserver((entries) => {
                     entries.forEach(entry => {
                         if (entry.isIntersecting) {
-                            App.onCardView(card.dataset.id);
+                            const card = entry.target;
+                            Store.addHistory(card.dataset.id);
+                            Sidebar.updateUI(); // Actualizar contador
                             
-                            // Si es una de las ultimas 2 tarjetas, cargar mas
-                            const allCards = document.querySelectorAll('.snap-card');
-                            const index = Array.from(allCards).indexOf(entry.target);
-                            if (index >= allCards.length - 2) {
+                            // Si es la penúltima carta, cargar más
+                            if (card.nextElementSibling === null || card.nextElementSibling.nextElementSibling === null) {
                                 App.loadMore();
                             }
                         }
                     });
                 }, { threshold: 0.5 });
-                
-                observer.observe(card);
             }
-
-            toggleSidebar() {
-                const panel = document.getElementById('sidebar-panel');
-                const backdrop = document.getElementById('sidebar-backdrop');
-                const isOpen = !panel.classList.contains('translate-x-full');
-
-                if (isOpen) {
-                    panel.classList.add('translate-x-full');
-                    backdrop.classList.add('opacity-0');
-                    setTimeout(() => backdrop.classList.add('hidden'), 300);
-                } else {
-                    // Update UI info before opening
-                    this.updateSidebarData();
-                    backdrop.classList.remove('hidden');
-                    setTimeout(() => backdrop.classList.remove('opacity-0'), 10);
-                    panel.classList.remove('translate-x-full');
-                }
-            }
-
-            updateSidebarData() {
-                const state = App.state.data;
-                document.getElementById('stat-read').innerText = state.history.length;
-                document.getElementById('stat-saved').innerText = state.likes.length;
-                
-                const topicContainer = document.getElementById('sidebar-topics');
-                topicContainer.innerHTML = '';
-                state.interests.forEach(topic => {
-                    const chip = document.createElement('span');
-                    chip.className = "px-3 py-1 rounded bg-white/10 text-xs text-gray-300";
-                    chip.innerText = topic;
-                    topicContainer.appendChild(chip);
-                });
-            }
-        }
+        };
 
         /**
-         * CLASE 4: APP CONTROLLER (Orquestador Principal)
+         * MÓDULO 5: CONTROLADOR DEL MENÚ (Sidebar)
          */
-        const App = {
-            state: new StateManager(),
-            content: null,
-            ui: new UIManager(),
-            currentCardsData: [], // Cache temporal
-
-            init() {
-                this.content = new ContentEngine(this.state);
-                
-                // Check Onboarding
-                if (this.state.data.onboardingComplete) {
-                    document.getElementById('onboarding-layer').style.display = 'none';
-                    this.startFeed();
+        window.Sidebar = {
+            el: document.getElementById('sidebar-panel'),
+            overlay: document.getElementById('sidebar-overlay'),
+            
+            toggle() {
+                const isClosed = this.el.classList.contains('translate-x-full');
+                if (isClosed) {
+                    this.overlay.classList.remove('hidden');
+                    // Pequeño delay para permitir transición de opacidad
+                    requestAnimationFrame(() => {
+                        this.overlay.classList.remove('opacity-0');
+                        this.el.classList.remove('translate-x-full');
+                    });
+                    this.updateUI();
                 } else {
-                    this.setupOnboarding();
+                    this.el.classList.add('translate-x-full');
+                    this.overlay.classList.add('opacity-0');
+                    setTimeout(() => this.overlay.classList.add('hidden'), 300);
                 }
             },
 
-            setupOnboarding() {
+            updateUI() {
+                document.getElementById('stat-views').innerText = Store.state.history.length;
+                document.getElementById('stat-likes').innerText = Store.state.likes.length;
+                
+                const list = document.getElementById('active-topics-list');
+                list.innerHTML = '';
+                Store.state.interests.forEach(topic => {
+                    const chip = document.createElement('span');
+                    chip.className = "px-3 py-1 rounded bg-surface border border-border text-xs text-textMuted";
+                    chip.innerText = topic;
+                    list.appendChild(chip);
+                });
+            }
+        };
+
+        /**
+         * MÓDULO 6: CORE APP (Orquestador)
+         */
+        const App = {
+            tempCards: [], // Cache local de la sesión
+            isLoading: false,
+
+            init() {
+                Store.init();
+                
+                if (!Store.state.onboarding) {
+                    this.renderOnboarding();
+                } else {
+                    document.getElementById('onboarding-screen').style.display = 'none';
+                    this.startFeed();
+                }
+                
+                UI.initObserver();
+            },
+
+            // --- Lógica de Onboarding ---
+            renderOnboarding() {
+                const topics = [
+                    "Psicología", "Astronomía", "Filosofía", "Historia", 
+                    "Tecnología", "Biología", "Arte", "Literatura", 
+                    "Cine", "Arquitectura", "Música", "Política",
+                    "Economía", "Sociología", "Física", "Química"
+                ];
+                
                 const grid = document.getElementById('topics-grid');
-                this.content.topicsPool.forEach(topic => {
+                topics.forEach(t => {
                     const btn = document.createElement('button');
-                    btn.className = "text-left p-4 rounded-xl border border-white/10 bg-white/5 text-gray-400 font-medium hover:border-brand/50 hover:bg-brand/10 hover:text-white transition-all active:scale-95";
-                    btn.innerText = topic;
+                    btn.className = "text-left p-4 rounded-xl border border-white/10 bg-white/5 text-textMuted font-medium transition-all active:scale-95";
+                    btn.innerText = t;
                     btn.onclick = () => {
-                        if (this.state.data.interests.includes(topic)) {
-                            this.state.removeInterest(topic);
-                            btn.classList.remove('border-brand', 'bg-brand', 'text-white');
-                            btn.classList.add('border-white/10', 'bg-white/5', 'text-gray-400');
+                        const idx = Store.state.interests.indexOf(t);
+                        if (idx > -1) {
+                            Store.state.interests.splice(idx, 1);
+                            btn.classList.remove('border-primary', 'bg-primary/20', 'text-white');
                         } else {
-                            if (this.state.data.interests.length >= 5) return; // Max 5
-                            this.state.addInterest(topic);
-                            btn.classList.remove('border-white/10', 'bg-white/5', 'text-gray-400');
-                            btn.classList.add('border-brand', 'bg-brand', 'text-white');
+                            if (Store.state.interests.length >= 3) return;
+                            Store.state.interests.push(t);
+                            btn.classList.add('border-primary', 'bg-primary/20', 'text-white');
                         }
                         
-                        // Validar botón continuar
-                        const startBtn = document.getElementById('btn-start-app');
-                        startBtn.disabled = this.state.data.interests.length < 3;
-                        if (!startBtn.disabled) {
-                            startBtn.classList.add('ring-2', 'ring-white/50');
-                        } else {
-                            startBtn.classList.remove('ring-2', 'ring-white/50');
-                        }
+                        // Actualizar UI Onboarding
+                        document.getElementById('topic-counter').innerText = `${Store.state.interests.length}/3`;
+                        const startBtn = document.getElementById('btn-start');
+                        startBtn.disabled = Store.state.interests.length < 3;
+                        if (!startBtn.disabled) startBtn.classList.add('bg-white', 'text-black');
                     };
                     grid.appendChild(btn);
                 });
             },
 
             completeOnboarding() {
-                this.state.data.onboardingComplete = true;
-                this.state.save();
-                
-                const layer = document.getElementById('onboarding-layer');
-                layer.style.transform = 'translateY(-100%)';
+                Store.state.onboarding = true;
+                Store.save();
+                const screen = document.getElementById('onboarding-screen');
+                screen.style.transform = 'translateY(-100%)';
                 setTimeout(() => {
-                    layer.style.display = 'none';
+                    screen.style.display = 'none';
                     this.startFeed();
                 }, 700);
             },
 
+            // --- Lógica de Feed ---
             async startFeed() {
-                // Carga inicial de 3 tarjetas
+                // Carga inicial agresiva (3 cards)
                 await this.loadMore();
+                document.getElementById('initial-loader').remove();
                 await this.loadMore();
                 await this.loadMore();
             },
 
             async loadMore() {
-                const loader = document.getElementById('infinite-loader');
-                loader.style.opacity = '1';
-                
-                const data = await this.content.fetchNextCard();
-                if (data) {
-                    this.currentCardsData.push(data);
-                    this.ui.renderCard(data);
-                }
-                
-                loader.style.opacity = '0';
-            },
+                if (this.isLoading) return;
+                this.isLoading = true;
+                document.getElementById('infinite-loader').style.opacity = '1';
 
-            onCardView(id) {
-                this.state.recordView(id);
+                try {
+                    const data = await APIManager.fetchNext(Store.state.interests);
+                    if (data) {
+                        this.tempCards.push(data);
+                        UI.createCard(data);
+                    }
+                } catch (e) {
+                    console.error(e);
+                }
+
+                this.isLoading = false;
+                document.getElementById('infinite-loader').style.opacity = '0';
             },
 
             handleLike(btn, id) {
-                const cardData = this.currentCardsData.find(c => c.id === id);
-                if (!cardData) return;
+                const card = this.tempCards.find(c => c.id === id);
+                if (!card) return;
 
-                const isLiked = this.state.toggleLike(cardData);
+                const isLiked = Store.toggleLike(card);
                 const icon = btn.querySelector('svg');
                 
                 if (isLiked) {
-                    btn.classList.add('text-pink-500', 'bg-pink-500/10');
-                    btn.classList.remove('text-gray-300', 'bg-white/5');
+                    btn.classList.add('text-accent', 'bg-accent/10', 'border-accent/50');
+                    btn.classList.remove('text-textMuted');
                     icon.setAttribute('fill', 'currentColor');
+                    UI.toast("Guardado en tu biblioteca");
+                    if (navigator.vibrate) navigator.vibrate(50);
                 } else {
-                    btn.classList.remove('text-pink-500', 'bg-pink-500/10');
-                    btn.classList.add('text-gray-300', 'bg-white/5');
+                    btn.classList.remove('text-accent', 'bg-accent/10', 'border-accent/50');
+                    btn.classList.add('text-textMuted');
                     icon.setAttribute('fill', 'none');
                 }
-                
-                // Efecto Haptic (Vibración) si el móvil soporta
-                if(navigator.vibrate) navigator.vibrate(50);
             },
 
-            speakText(text, btn) {
-                if (window.speechSynthesis.speaking) {
-                    window.speechSynthesis.cancel();
-                    btn.classList.remove('text-brand', 'bg-brand/10');
-                    return;
-                }
-
-                const utterance = new SpeechSynthesisUtterance(text);
-                utterance.lang = 'es-ES';
-                utterance.rate = 1.0;
-                
-                utterance.onstart = () => {
-                    btn.classList.add('text-brand', 'bg-brand/10');
-                };
-                utterance.onend = () => {
-                    btn.classList.remove('text-brand', 'bg-brand/10');
-                };
-
-                window.speechSynthesis.speak(utterance);
-            },
-
-            clearData() {
-                if(confirm('¿Reiniciar todo? Se perderán tus likes.')) {
-                    this.state.reset();
+            hardReset() {
+                if (confirm("¿Borrar todo y reiniciar?")) {
+                    localStorage.removeItem(Store.key);
+                    location.reload();
                 }
             }
         };
 
-        // INICIAR APLICACIÓN
-        window.addEventListener('DOMContentLoaded', () => {
-            App.init();
-        });
+        // ARRANCAR
+        window.addEventListener('DOMContentLoaded', () => App.init());
 
     </script>
 </body>
