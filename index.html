@@ -1,523 +1,469 @@
-<!doctype html>
-<html lang="es" class="h-full">
- <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Knowledge Scroll</title>
-  <script src="https://cdn.tailwindcss.com"></script>
-  <script src="/_sdk/element_sdk.js"></script>
-  <script src="/_sdk/data_sdk.js"></script>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,400;8..60,500;8..60,600&amp;family=Inter:wght@400;500;600&amp;display=swap" rel="stylesheet">
-  <style>
-    body {
-      box-sizing: border-box;
-    }
+<!DOCTYPE html>
+<html lang="es" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Essence - Live</title>
     
-    * {
-      -webkit-tap-highlight-color: transparent;
-    }
-    
-    .scroll-container {
-      scroll-snap-type: y mandatory;
-      -webkit-overflow-scrolling: touch;
-      scroll-behavior: smooth;
-    }
-    
-    .card-item {
-      scroll-snap-align: start;
-      scroll-snap-stop: always;
-      flex-shrink: 0;
-    }
-    
-    .fade-in {
-      animation: fadeIn 0.5s ease-out forwards;
-      opacity: 0;
-    }
-    
-    @keyframes fadeIn {
-      from { opacity: 0; transform: translateY(20px); }
-      to { opacity: 1; transform: translateY(0); }
-    }
-    
-    .menu-slide {
-      transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    }
-    
-    .menu-closed {
-      transform: translateX(-100%);
-    }
-    
-    .menu-open {
-      transform: translateX(0);
-    }
-    
-    .overlay-fade {
-      transition: opacity 0.3s ease;
-    }
-    
-    .like-pulse {
-      animation: likePulse 0.3s ease-out;
-    }
-    
-    @keyframes likePulse {
-      0% { transform: scale(1); }
-      50% { transform: scale(1.2); }
-      100% { transform: scale(1); }
-    }
-    
-    .toggle-switch {
-      transition: background-color 0.2s ease;
-    }
-    
-    .toggle-knob {
-      transition: transform 0.2s ease;
-    }
-    
-    .topic-option {
-      transition: all 0.2s ease;
-      cursor: pointer;
-    }
-    
-    .topic-option:active {
-      transform: scale(0.95);
-    }
-  </style>
-  <style>@view-transition { navigation: auto; }</style>
- </head>
- <body class="h-full">
-  <div id="app-wrapper" class="h-full w-full relative overflow-hidden"><!-- Onboarding Modal -->
-   <div id="onboarding-modal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-gradient-to-br from-stone-50 to-stone-100">
-    <div class="bg-white rounded-2xl max-w-md w-full p-8 shadow-2xl max-h-[90vh] overflow-y-auto">
-     <div class="text-center mb-8">
-      <div class="w-16 h-16 mx-auto mb-4 rounded-2xl flex items-center justify-center bg-gradient-to-br from-emerald-500 to-emerald-700">
-       <svg width="32" height="32" viewbox="0 0 24 24" fill="none" stroke="white" stroke-width="1.5"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z" /> <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z" />
-       </svg>
-      </div>
-      <h1 class="text-3xl font-bold mb-2" style="font-family: 'Source Serif 4', serif;">Knowledge Scroll</h1>
-      <p class="text-sm text-gray-600">Elige 6 temas para comenzar</p>
-     </div>
-     <div id="topics-grid" class="grid grid-cols-2 gap-3 mb-8"><!-- Topics rendered here -->
-     </div>
-     <div class="text-center">
-      <p class="text-xs text-gray-500 mb-4"><span id="selected-count">0</span>/6 seleccionados</p><button id="start-btn" disabled class="w-full py-3 px-6 rounded-lg font-semibold transition-all text-white" style="background-color: #d1d5db; cursor: not-allowed;"> Comenzar </button>
-     </div>
-    </div>
-   </div><!-- Header -->
-   <header id="main-header" class="fixed top-0 left-0 right-0 z-40 px-5 py-4 flex items-center justify-between backdrop-blur-md hidden"><button id="menu-btn" class="w-10 h-10 flex items-center justify-center rounded-full transition-colors" type="button">
-     <svg width="20" height="14" viewbox="0 0 20 14" fill="none"><path d="M1 1h18M1 7h18M1 13h12" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
-     </svg></button>
-    <div class="text-center">
-     <h1 id="header-title" class="text-lg font-semibold tracking-tight" style="font-family: 'Inter', sans-serif;">Knowledge Scroll</h1>
-    </div>
-    <div class="w-10 h-10"></div>
-   </header><!-- Menu Overlay -->
-   <div id="menu-overlay" class="fixed inset-0 z-50 pointer-events-none overlay-fade opacity-0">
-    <div class="absolute inset-0 bg-black/40" onclick="closeMenu()"></div>
-   </div><!-- Side Menu -->
-   <aside id="side-menu" class="fixed top-0 left-0 bottom-0 w-80 max-w-[85%] z-50 menu-slide menu-closed overflow-y-auto">
-    <div class="p-6 pt-8"><!-- Menu Header -->
-     <div class="flex items-center justify-between mb-8">
-      <h2 class="text-xl font-semibold" style="font-family: 'Inter', sans-serif;">Preferencias</h2><button type="button" onclick="closeMenu()" class="w-8 h-8 flex items-center justify-center rounded-full transition-colors">
-       <svg width="14" height="14" viewbox="0 0 14 14" fill="none"><path d="M1 1l12 12M13 1L1 13" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
-       </svg></button>
-     </div><!-- Theme Toggle -->
-     <div class="mb-8">
-      <h3 class="text-xs font-semibold uppercase tracking-wider mb-4 opacity-60">Visualización</h3>
-      <div class="flex items-center justify-between py-3"><span class="font-medium">Modo oscuro</span> <button type="button" id="theme-toggle" class="w-12 h-7 rounded-full toggle-switch relative bg-gray-200"> <span class="toggle-knob absolute top-1 left-1 w-5 h-5 rounded-full shadow-sm bg-white"></span> </button>
-      </div>
-     </div><!-- Topics -->
-     <div>
-      <h3 class="text-xs font-semibold uppercase tracking-wider mb-4 opacity-60">Temas de interés</h3>
-      <div id="topics-list" class="space-y-1"><!-- Topics rendered by JS -->
-      </div>
-     </div><!-- Stats -->
-     <div class="mt-10 pt-6 border-t">
-      <div class="flex items-center gap-3">
-       <svg width="18" height="18" viewbox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
-       </svg><span class="text-sm"><span id="likes-count">0</span> artículos guardados</span>
-      </div>
-     </div>
-    </div>
-   </aside><!-- Main Scroll Container -->
-   <main id="scroll-container" class="h-full w-full overflow-y-auto scroll-container pt-16 hidden"><!-- Welcome Card -->
-    <section id="welcome-card" class="card-item h-full w-full flex flex-col items-center justify-center px-6 text-center">
-     <div class="max-w-sm">
-      <div class="w-16 h-16 mx-auto mb-6 rounded-2xl flex items-center justify-center">
-       <svg width="32" height="32" viewbox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z" /> <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z" />
-       </svg>
-      </div>
-      <h2 id="welcome-title" class="text-2xl font-semibold mb-3" style="font-family: 'Source Serif 4', serif;">Scroll con propósito</h2>
-      <p id="welcome-tagline" class="text-base leading-relaxed opacity-70 mb-8">Descubre conocimiento real basado en tus intereses.</p>
-      <div class="flex items-center justify-center gap-2 opacity-50">
-       <svg width="16" height="16" viewbox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M19 12l-7 7-7-7" />
-       </svg><span class="text-sm">Desliza para comenzar</span>
-      </div>
-     </div>
-    </section><!-- Cards Container -->
-    <div id="cards-container"><!-- Cards rendered by JS -->
-    </div><!-- Empty State -->
-    <div id="empty-state" class="card-item h-full w-full flex items-center justify-center px-6 hidden">
-     <div class="text-center max-w-sm">
-      <p class="text-lg opacity-60 mb-4">No hay contenido</p>
-      <p class="text-sm opacity-40">Selecciona más temas en el menú</p>
-     </div>
-    </div>
-   </main>
-  </div>
-  <script>
-    // State
-    let config = {
-      app_title: 'Knowledge Scroll',
-      tagline: 'Scroll con propósito',
-      background_color: '#FAFAF9',
-      surface_color: '#FFFFFF',
-      text_color: '#1C1917',
-      primary_action: '#059669',
-      secondary_action: '#78716C'
-    };
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
 
-    let selectedTopics = [];
-    let likedCards = new Map();
-    let isDarkMode = false;
-    let appStarted = false;
-
-    // Topics
-    const topics = [
-      { id: 'fisica', label: 'Física', icon: '⚛' },
-      { id: 'biologia', label: 'Biología', icon: '🧬' },
-      { id: 'quimica', label: 'Química', icon: '⚗' },
-      { id: 'astronomia', label: 'Astronomía', icon: '☆' },
-      { id: 'neurociencia', label: 'Neurociencia', icon: '⊗' },
-      { id: 'filosofia', label: 'Filosofía', icon: '◎' },
-      { id: 'historia', label: 'Historia', icon: '◈' },
-      { id: 'literatura', label: 'Literatura', icon: '◐' },
-      { id: 'arte', label: 'Arte', icon: '◆' },
-      { id: 'psicologia', label: 'Psicología', icon: '◉' },
-      { id: 'sociologia', label: 'Sociología', icon: '⊕' },
-      { id: 'economia', label: 'Economía', icon: '⊙' },
-      { id: 'tecnologia', label: 'Tecnología', icon: '◇' },
-      { id: 'inteligencia-artificial', label: 'IA', icon: '◈' },
-      { id: 'ciberseguridad', label: 'Ciberseguridad', icon: '◊' },
-      { id: 'educacion', label: 'Educación', icon: '○' },
-      { id: 'creatividad', label: 'Creatividad', icon: '◑' },
-      { id: 'pensamiento', label: 'Pensamiento crítico', icon: '●' },
-    ];
-
-    // Cards
-    const cards = [
-      { id: 'card-001', topics: ['psicologia'], title: 'La memoria de trabajo', source: 'Make It Stick', type: 'Libro', description: 'Cómo la memoria de trabajo limita el aprendizaje.' },
-      { id: 'card-002', topics: ['psicologia', 'neurociencia'], title: 'Privación del sueño', source: 'Nature Reviews', type: 'Estudio', description: 'El impacto del sueño en la formación de recuerdos.' },
-      { id: 'card-003', topics: ['psicologia'], title: 'Testing effect', source: 'Cognitive Psychology', type: 'Investigación', description: 'Por qué las pruebas mejoran la retención.' },
-      { id: 'card-004', topics: ['psicologia', 'creatividad'], title: 'Flow State', source: 'Flow Theory', type: 'Libro', description: 'Estados de concentración profunda.' },
-      { id: 'card-005', topics: ['tecnologia', 'inteligencia-artificial'], title: 'Deep Learning', source: 'AI Review', type: 'Artículo', description: 'Redes neuronales que aprenden patrones complejos.' },
-      { id: 'card-006', topics: ['tecnologia', 'ciberseguridad'], title: 'Criptografía moderna', source: 'Security Reviews', type: 'Artículo', description: 'Algoritmos que protegen nuestros datos.' },
-      { id: 'card-007', topics: ['filosofia'], title: 'La aporía socrática', source: 'Platón', type: 'Clásico', description: 'La perplejidad como herramienta pedagógica.' },
-      { id: 'card-008', topics: ['historia'], title: 'Biblioteca de Alejandría', source: 'Encyclopedia', type: 'Artículo', description: 'El legado del conocimiento antiguo.' },
-      { id: 'card-009', topics: ['biologia'], title: 'CRISPR', source: 'Nature', type: 'Estudio', description: 'Edición genética revolucionaria.' },
-      { id: 'card-010', topics: ['educacion'], title: 'Zona de desarrollo próximo', source: 'Vygotsky', type: 'Clásico', description: 'El andamiaje educativo.' },
-      { id: 'card-011', topics: ['neurociencia'], title: 'Neuroplasticidad', source: 'Neuroscience', type: 'Estudio', description: 'El cerebro puede formar nuevas conexiones.' },
-      { id: 'card-012', topics: ['pensamiento'], title: 'Sesgos cognitivos', source: 'Kahneman', type: 'Libro', description: 'Errores en nuestro razonamiento.' },
-    ];
-
-    // Data SDK handler
-    const dataHandler = {
-      onDataChanged(data) {
-        likedCards.clear();
-        data.forEach(item => {
-          likedCards.set(item.card_id, item);
-        });
-        updateUI();
-      }
-    };
-
-    // Initialize Element SDK
-    async function initElementSDK() {
-      if (!window.elementSdk) return;
-      window.elementSdk.init({
-        defaultConfig: config,
-        onConfigChange: async (newConfig) => {
-          config = { ...config, ...newConfig };
-          applyConfig();
-        },
-        mapToCapabilities: () => ({
-          recolorables: [],
-          borderables: [],
-          fontEditable: undefined,
-          fontSizeable: undefined
-        }),
-        mapToEditPanelValues: () => new Map()
-      });
-    }
-
-    // Initialize Data SDK
-    async function initDataSDK() {
-      if (!window.dataSdk) return;
-      await window.dataSdk.init(dataHandler);
-    }
-
-    // Render onboarding
-    function renderOnboarding() {
-      const grid = document.getElementById('topics-grid');
-      grid.innerHTML = topics.map(topic => `
-        <button 
-          type="button"
-          onclick="selectTopic('${topic.id}')"
-          class="topic-option p-4 rounded-lg border-2 text-center"
-          data-topic="${topic.id}"
-          style="border-color: #e5e5e5; background: white;"
-        >
-          <div class="text-3xl mb-2">${topic.icon}</div>
-          <div class="text-xs font-semibold">${topic.label}</div>
-        </button>
-      `).join('');
-    }
-
-    // Select topic in onboarding
-    function selectTopic(topicId) {
-      const btn = document.querySelector(`[data-topic="${topicId}"]`);
-      const isSelected = selectedTopics.includes(topicId);
-      
-      if (isSelected) {
-        selectedTopics = selectedTopics.filter(t => t !== topicId);
-        btn.style.borderColor = '#e5e5e5';
-        btn.style.backgroundColor = 'white';
-      } else if (selectedTopics.length < 6) {
-        selectedTopics.push(topicId);
-        btn.style.borderColor = '#059669';
-        btn.style.backgroundColor = '#ecfdf520';
-      }
-      
-      updateOnboardingUI();
-    }
-
-    // Update onboarding UI
-    function updateOnboardingUI() {
-      document.getElementById('selected-count').textContent = selectedTopics.length;
-      const btn = document.getElementById('start-btn');
-      
-      if (selectedTopics.length === 6) {
-        btn.disabled = false;
-        btn.style.backgroundColor = '#059669';
-        btn.style.cursor = 'pointer';
-        btn.onclick = startApp;
-      }
-    }
-
-    // Start app
-    function startApp() {
-      if (selectedTopics.length !== 6) return;
-      
-      appStarted = true;
-      document.getElementById('onboarding-modal').style.display = 'none';
-      document.getElementById('scroll-container').style.display = 'flex';
-      document.getElementById('scroll-container').style.flexDirection = 'column';
-      document.getElementById('main-header').style.display = 'flex';
-      
-      renderCards();
-      renderTopicsMenu();
-      applyConfig();
-    }
-
-    // Render cards
-    function renderCards() {
-      const container = document.getElementById('cards-container');
-      const bgColor = config.background_color;
-      const textColor = config.text_color;
-      const primaryColor = config.primary_action;
-      
-      let filtered = cards.filter(card => 
-        card.topics.some(t => selectedTopics.includes(t))
-      );
-
-      filtered.sort((a, b) => {
-        const aLiked = likedCards.has(a.id) ? 1 : 0;
-        const bLiked = likedCards.has(b.id) ? 1 : 0;
-        return bLiked - aLiked;
-      });
-
-      if (filtered.length === 0) {
-        document.getElementById('empty-state').style.display = 'flex';
-        container.innerHTML = '';
-        return;
-      }
-
-      document.getElementById('empty-state').style.display = 'none';
-      
-      container.innerHTML = filtered.map((card, i) => {
-        const isLiked = likedCards.has(card.id);
-        return `
-          <article class="card-item h-full w-full flex flex-col px-6 py-8 fade-in" style="background-color: ${bgColor}; color: ${textColor}; animation-delay: ${i * 50}ms;">
-            <div class="flex-1 flex flex-col justify-center max-w-lg mx-auto w-full">
-              <div class="mb-6">
-                <span class="inline-block px-3 py-1.5 rounded-full text-xs font-semibold uppercase" style="background-color: ${primaryColor}20; color: ${primaryColor};">
-                  ${card.type}
-                </span>
-              </div>
-              <h2 class="text-2xl font-semibold mb-4" style="font-family: 'Source Serif 4', serif;">
-                ${card.title}
-              </h2>
-              <p class="text-sm mb-6 opacity-60">${card.source}</p>
-              <p class="text-base leading-relaxed mb-8 opacity-80" style="font-family: 'Source Serif 4', serif;">
-                ${card.description}
-              </p>
-              <div class="flex items-center gap-4 pt-4 border-t" style="border-color: ${config.secondary_action}20;">
-                <button 
-                  type="button"
-                  onclick="toggleLike('${card.id}')"
-                  class="like-btn ml-auto flex items-center gap-2 px-4 py-2 rounded-full border-2 text-sm font-medium"
-                  style="background-color: ${isLiked ? primaryColor : 'transparent'}; border-color: ${isLiked ? primaryColor : config.secondary_action}; color: ${isLiked ? config.surface_color : config.secondary_action};"
-                >
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="${isLiked ? 'currentColor' : 'none'}" stroke="currentColor" stroke-width="2">
-                    <path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3zM7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3"/>
-                  </svg>
-                  <span>${isLiked ? 'Guardado' : 'Me gusta'}</span>
-                </button>
-              </div>
-            </div>
-            <div class="flex items-center justify-center gap-2 pt-6 opacity-30">
-              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M12 5v14M19 12l-7 7-7-7"/>
-              </svg>
-            </div>
-          </article>
-        `;
-      }).join('');
-    }
-
-    // Toggle like
-    async function toggleLike(cardId) {
-      const btn = document.querySelector(`.like-btn[onclick*="${cardId}"]`);
-      if (!btn) return;
-      
-      btn.classList.add('like-pulse');
-      btn.disabled = true;
-      
-      const isLiked = likedCards.has(cardId);
-      
-      if (isLiked) {
-        const data = likedCards.get(cardId);
-        if (window.dataSdk && data.__backendId) {
-          await window.dataSdk.delete(data);
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: {
+                        serif: ['Georgia', 'Cambria', 'Times New Roman', 'serif'],
+                        sans: ['Segoe UI', 'Roboto', 'Helvetica', 'sans-serif'],
+                    },
+                    colors: {
+                        brand: '#3B82F6', // Azul brillante
+                        darkBg: '#000000', 
+                        darkCard: '#121212',
+                        paper: '#F3F4F6'
+                    },
+                    animation: {
+                        'pulse-fast': 'pulse 1.5s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+                    }
+                }
+            }
         }
-      } else {
-        if (window.dataSdk) {
-          await window.dataSdk.create({
-            card_id: cardId,
-            liked: true,
-            liked_at: new Date().toISOString()
-          });
+    </script>
+
+    <style>
+        /* SCROLL SNAP & UTILIDADES */
+        body { background-color: black; color: white; overflow: hidden; }
+        
+        .scroll-container {
+            height: 100vh;
+            width: 100vw;
+            overflow-y: scroll;
+            scroll-snap-type: y mandatory;
+            scroll-behavior: smooth;
+            scrollbar-width: none; /* Firefox */
         }
-      }
-      
-      setTimeout(() => {
-        btn.classList.remove('like-pulse');
-        btn.disabled = false;
-      }, 300);
-    }
+        .scroll-container::-webkit-scrollbar { display: none; }
 
-    // Render topics menu
-    function renderTopicsMenu() {
-      const container = document.getElementById('topics-list');
-      const primaryColor = config.primary_action;
-      
-      container.innerHTML = topics.map(topic => {
-        const isActive = selectedTopics.includes(topic.id);
-        return `
-          <button 
-            type="button"
-            onclick="toggleMenuTopic('${topic.id}')"
-            class="w-full flex items-center gap-3 px-4 py-3 rounded-lg border-2 transition-all"
-            style="background-color: ${isActive ? primaryColor + '20' : 'transparent'}; border-color: ${isActive ? primaryColor : config.secondary_action + '40'};"
-          >
-            <span class="text-lg">${topic.icon}</span>
-            <span class="font-medium text-sm flex-1 text-left">${topic.label}</span>
-          </button>
-        `;
-      }).join('');
-    }
+        .card {
+            scroll-snap-align: start;
+            height: 100vh;
+            width: 100vw;
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
 
-    // Toggle menu topic
-    function toggleMenuTopic(topicId) {
-      const idx = selectedTopics.indexOf(topicId);
-      if (idx > -1) {
-        selectedTopics.splice(idx, 1);
-      } else {
-        selectedTopics.push(topicId);
-      }
-      renderTopicsMenu();
-      renderCards();
-    }
+        /* Glassmorphism Sidebar */
+        .glass-sidebar {
+            background: rgba(20, 20, 20, 0.95);
+            backdrop-filter: blur(10px);
+            border-left: 1px solid rgba(255, 255, 255, 0.1);
+        }
 
-    // Update UI
-    function updateUI() {
-      document.getElementById('likes-count').textContent = likedCards.size;
-      if (appStarted) {
-        renderCards();
-      }
-    }
+        /* Degradado para textos largos */
+        .text-fade {
+            mask-image: linear-gradient(to bottom, black 80%, transparent 100%);
+            -webkit-mask-image: linear-gradient(to bottom, black 80%, transparent 100%);
+        }
+        
+        /* Imagen de fondo con overlay */
+        .bg-image-overlay {
+            position: absolute;
+            inset: 0;
+            z-index: 0;
+            opacity: 0.3;
+            background-size: cover;
+            background-position: center;
+            mask-image: linear-gradient(to bottom, black 0%, transparent 100%);
+            -webkit-mask-image: linear-gradient(to bottom, black 0%, transparent 100%);
+        }
+    </style>
+</head>
+<body class="bg-darkBg text-gray-100 antialiased selection:bg-brand selection:text-white">
 
-    // Apply config
-    function applyConfig() {
-      const wrapper = document.getElementById('app-wrapper');
-      wrapper.style.backgroundColor = config.background_color;
-      wrapper.style.color = config.text_color;
-      
-      document.getElementById('main-header').style.backgroundColor = config.background_color + 'E6';
-      document.getElementById('side-menu').style.backgroundColor = config.surface_color;
-      document.getElementById('side-menu').style.color = config.text_color;
-    }
+    <div id="onboarding" class="fixed inset-0 z-50 bg-black flex flex-col p-8 transition-transform duration-700">
+        <div class="mt-10 mb-6">
+            <h1 class="text-4xl font-serif font-bold text-white mb-2">Essence.</h1>
+            <p class="text-gray-400">Diseña tu flujo de conocimiento.</p>
+        </div>
+        
+        <p class="text-sm font-bold uppercase tracking-widest text-brand mb-4">Elige 3 intereses</p>
+        
+        <div class="flex-1 overflow-y-auto grid grid-cols-2 gap-3 content-start pb-20" id="topic-grid">
+            </div>
 
-    // Toggle theme
-    document.addEventListener('DOMContentLoaded', () => {
-      const themeBtn = document.getElementById('theme-toggle');
-      if (themeBtn) {
-        themeBtn.addEventListener('click', () => {
-          isDarkMode = !isDarkMode;
-          
-          if (isDarkMode) {
-            config.background_color = '#0F0F0F';
-            config.surface_color = '#1A1A1A';
-            config.text_color = '#FAFAFA';
-          } else {
-            config.background_color = '#FAFAF9';
-            config.surface_color = '#FFFFFF';
-            config.text_color = '#1C1917';
-          }
-          
-          const knob = themeBtn.querySelector('.toggle-knob');
-          if (isDarkMode) {
-            themeBtn.style.backgroundColor = config.primary_action;
-            knob.style.transform = 'translateX(20px)';
-          } else {
-            themeBtn.style.backgroundColor = '#e5e7eb';
-            knob.style.transform = 'translateX(0)';
-          }
-          
-          applyConfig();
-          if (appStarted) renderCards();
-        });
-      }
-      
-      document.getElementById('menu-btn').addEventListener('click', () => {
-        document.getElementById('side-menu').classList.remove('menu-closed');
-        document.getElementById('side-menu').classList.add('menu-open');
-        document.getElementById('menu-overlay').classList.remove('opacity-0', 'pointer-events-none');
-        document.getElementById('menu-overlay').classList.add('opacity-100', 'pointer-events-auto');
-      });
-      
-      renderOnboarding();
-      initElementSDK();
-      initDataSDK();
-    });
+        <div class="absolute bottom-0 left-0 w-full p-6 bg-gradient-to-t from-black via-black to-transparent">
+            <button id="btn-start" onclick="startApp()" disabled 
+                class="w-full py-4 rounded-full bg-white text-black font-bold text-lg disabled:opacity-30 disabled:cursor-not-allowed transition-all active:scale-95">
+                Comenzar
+            </button>
+        </div>
+    </div>
 
-    function closeMenu() {
-      document.getElementById('side-menu').classList.remove('menu-open');
-      document.getElementById('side-menu').classList.add('menu-closed');
-      document.getElementById('menu-overlay').classList.remove('opacity-100', 'pointer-events-auto');
-      document.getElementById('menu-overlay').classList.add('opacity-0', 'pointer-events-none');
-    }
-  </script>
- <script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9cade64b60554cc1',t:'MTc3MDU4Mjc4MC4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+    <button onclick="toggleSidebar()" class="fixed top-5 right-5 z-40 p-3 rounded-full bg-white/10 backdrop-blur border border-white/10 hover:bg-white/20 transition-all">
+        <i data-lucide="menu" class="w-6 h-6 text-white"></i>
+    </button>
+
+    <div id="feed" class="scroll-container">
+        </div>
+
+    <div id="loading-trigger" class="fixed bottom-5 left-1/2 -translate-x-1/2 z-30 opacity-0 pointer-events-none">
+        <div class="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-brand"></div>
+    </div>
+
+    <div id="sidebar-overlay" onclick="toggleSidebar()" class="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm hidden opacity-0 transition-opacity duration-300"></div>
+    
+    <div id="sidebar" class="fixed inset-y-0 right-0 z-50 w-80 glass-sidebar transform translate-x-full transition-transform duration-300 p-6 flex flex-col">
+        <div class="flex justify-between items-center mb-10">
+            <h2 class="font-serif font-bold text-xl">Tu Biblioteca</h2>
+            <button onclick="toggleSidebar()"><i data-lucide="x" class="w-6 h-6"></i></button>
+        </div>
+
+        <div class="grid grid-cols-2 gap-4 mb-8">
+            <div class="bg-white/5 p-4 rounded-xl border border-white/5">
+                <div class="text-2xl font-bold text-brand" id="stat-reads">0</div>
+                <div class="text-xs text-gray-400 uppercase">Leídos</div>
+            </div>
+            <div class="bg-white/5 p-4 rounded-xl border border-white/5">
+                <div class="text-2xl font-bold text-pink-500" id="stat-likes">0</div>
+                <div class="text-xs text-gray-400 uppercase">Likes</div>
+            </div>
+        </div>
+
+        <div class="flex-1 overflow-y-auto">
+            <h3 class="text-xs font-bold text-gray-500 uppercase mb-4 tracking-widest">Tus Intereses Activos</h3>
+            <div id="active-topics-list" class="space-y-2">
+                </div>
+            
+            <button onclick="resetApp()" class="mt-8 text-xs text-red-400 underline w-full text-left">Reiniciar todo</button>
+        </div>
+    </div>
+
+    <script>
+        // --- CONFIGURACIÓN ---
+        const TOPICS_POOL = [
+            "Astronomía", "Psicología", "Filosofía", "Historia", "Biología", 
+            "Física", "Arte", "Literatura", "Economía", "Sociología", 
+            "Tecnología", "Cine", "Música", "Arquitectura", "Geografía",
+            "Matemáticas", "Medicina", "Política", "Antropología", "Química"
+        ];
+
+        // --- ESTADO ---
+        let state = {
+            interests: [],
+            history: [], // IDs de artículos ya vistos para no repetir
+            likes: [],
+            page: 1,
+            isLoading: false
+        };
+
+        // --- MOTORES DE API (API ENGINES) ---
+
+        // 1. Motor Wikipedia
+        async function fetchWikipediaContent(topic) {
+            try {
+                // Paso 1: Buscar páginas relacionadas con el tema
+                const searchUrl = `https://es.wikipedia.org/w/api.php?action=query&list=search&srsearch=${topic}&format=json&origin=*&srlimit=10`;
+                const searchRes = await fetch(searchUrl).then(r => r.json());
+                
+                if (!searchRes.query || !searchRes.query.search.length) return null;
+
+                // Filtrar resultados ya vistos
+                const candidates = searchRes.query.search.filter(item => !state.history.includes(item.pageid));
+                if (candidates.length === 0) return null;
+
+                // Elegir uno al azar
+                const chosen = candidates[Math.floor(Math.random() * candidates.length)];
+                
+                // Paso 2: Obtener detalles (Extracto e Imagen)
+                const detailUrl = `https://es.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(chosen.title)}`;
+                const detail = await fetch(detailUrl).then(r => r.json());
+
+                if (!detail.extract) return null;
+
+                return {
+                    id: detail.pageid,
+                    type: 'Wiki',
+                    source: 'Wikipedia',
+                    category: topic,
+                    title: detail.title,
+                    text: detail.extract,
+                    image: detail.thumbnail ? detail.thumbnail.source : null,
+                    url: detail.content_urls ? detail.content_urls.desktop.page : `https://es.wikipedia.org/wiki/${chosen.title}`
+                };
+
+            } catch (e) {
+                console.error("Wiki Error", e);
+                return null;
+            }
+        }
+
+        // 2. Motor Open Library (Libros)
+        async function fetchBookContent(topic) {
+            try {
+                // Buscar libros en español sobre el tema
+                const url = `https://openlibrary.org/search.json?q=${topic}&language=spa&limit=20&fields=title,author_name,key,first_sentence,cover_i`;
+                const res = await fetch(url).then(r => r.json());
+
+                if (!res.docs || res.docs.length === 0) return null;
+
+                // Filtrar libros ya vistos (usando key)
+                const candidates = res.docs.filter(book => !state.history.includes(book.key));
+                const book = candidates[Math.floor(Math.random() * candidates.length)];
+
+                if (!book) return null;
+
+                const text = book.first_sentence ? 
+                    `"${book.first_sentence[0]}"` : 
+                    `Una obra destacada de ${book.author_name ? book.author_name[0] : 'Autor desconocido'} sobre ${topic}.`;
+
+                return {
+                    id: book.key,
+                    type: 'Libro',
+                    source: 'Open Library',
+                    category: topic,
+                    title: book.title,
+                    text: text,
+                    image: book.cover_i ? `https://covers.openlibrary.org/b/id/${book.cover_i}-L.jpg` : null,
+                    url: `https://openlibrary.org${book.key}`
+                };
+            } catch (e) { return null; }
+        }
+
+        // --- CORE LOGIC ---
+
+        async function generateCard() {
+            if (state.isLoading) return;
+            state.isLoading = true;
+            document.getElementById('loading-trigger').style.opacity = '1';
+
+            // 1. Elegir tema al azar de los intereses del usuario
+            const randomTopic = state.interests[Math.floor(Math.random() * state.interests.length)];
+            
+            // 2. Decidir fuente (70% Wiki, 30% Libros)
+            let data = null;
+            if (Math.random() > 0.3) {
+                data = await fetchWikipediaContent(randomTopic);
+            } else {
+                data = await fetchBookContent(randomTopic);
+                // Fallback a Wiki si no hay libro
+                if (!data) data = await fetchWikipediaContent(randomTopic);
+            }
+
+            // 3. Renderizar si hay datos
+            if (data) {
+                state.history.push(data.id);
+                renderCardHTML(data);
+                updateStats(); // Contar como leído (simplificado)
+            }
+
+            state.isLoading = false;
+            document.getElementById('loading-trigger').style.opacity = '0';
+        }
+
+        function renderCardHTML(data) {
+            const container = document.getElementById('feed');
+            const card = document.createElement('div');
+            card.className = "card bg-darkCard text-white border-b border-white/5";
+            
+            // Imagen de fondo (si existe)
+            const bgImage = data.image ? `<div class="bg-image-overlay" style="background-image: url('${data.image}')"></div>` : '';
+            
+            // Icono según tipo
+            const iconType = data.type === 'Libro' ? 'book' : 'globe';
+
+            card.innerHTML = `
+                ${bgImage}
+                <div class="relative z-10 flex flex-col h-full p-8 pt-20 pb-10">
+                    
+                    <div class="flex items-center gap-2 mb-6 opacity-70">
+                        <span class="px-3 py-1 rounded-full border border-white/20 text-xs font-bold uppercase tracking-widest bg-black/40 backdrop-blur">
+                            ${data.category}
+                        </span>
+                        <div class="flex items-center gap-1 text-xs">
+                            <i data-lucide="${iconType}" class="w-3 h-3"></i>
+                            ${data.source}
+                        </div>
+                    </div>
+
+                    <div class="flex-1 flex flex-col justify-center animate-fade-in">
+                        <h2 class="text-3xl md:text-5xl font-serif font-bold leading-tight mb-8 text-shadow-sm">
+                            ${data.title}
+                        </h2>
+                        <p class="text-lg md:text-xl leading-relaxed text-gray-200 font-sans opacity-90 text-fade max-h-[40vh] overflow-hidden">
+                            ${data.text} ...
+                        </p>
+                    </div>
+
+                    <div class="mt-auto pt-6 flex items-center justify-between border-t border-white/10">
+                        <a href="${data.url}" target="_blank" class="flex items-center gap-2 text-brand font-bold hover:underline">
+                            Saber más <i data-lucide="external-link" class="w-4 h-4"></i>
+                        </a>
+                        
+                        <div class="flex gap-4">
+                            <button onclick="toggleLike(this)" class="p-3 rounded-full bg-white/5 hover:bg-white/10 border border-white/10 transition-transform active:scale-90">
+                                <i data-lucide="heart" class="w-6 h-6 text-gray-300"></i>
+                            </button>
+                            <button onclick="shareData('${data.title}', '${data.url}')" class="p-3 rounded-full bg-white/5 hover:bg-white/10 border border-white/10">
+                                <i data-lucide="share-2" class="w-6 h-6 text-gray-300"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            container.appendChild(card);
+            lucide.createIcons();
+            
+            // Animación de entrada
+            card.animate([
+                { opacity: 0, transform: 'scale(0.95)' },
+                { opacity: 1, transform: 'scale(1)' }
+            ], { duration: 500, easing: 'ease-out' });
+        }
+
+        // --- SISTEMA DE UI ---
+
+        function init() {
+            // Cargar estado
+            const saved = localStorage.getItem('essence_live_state');
+            if (saved) {
+                state = JSON.parse(saved);
+                if (state.interests.length > 0) {
+                    document.getElementById('onboarding').style.display = 'none';
+                    // Cargar primeras 3 tarjetas
+                    generateCard();
+                    generateCard();
+                    generateCard();
+                } else {
+                    renderOnboarding();
+                }
+            } else {
+                renderOnboarding();
+            }
+
+            // Configurar Scroll Infinito
+            const feed = document.getElementById('feed');
+            feed.addEventListener('scroll', () => {
+                if (feed.scrollTop + feed.clientHeight >= feed.scrollHeight - 200) {
+                    generateCard();
+                }
+            });
+
+            updateSidebarUI();
+        }
+
+        function renderOnboarding() {
+            const grid = document.getElementById('topic-grid');
+            TOPICS_POOL.forEach(topic => {
+                const btn = document.createElement('button');
+                btn.className = "p-4 rounded-xl border border-white/10 bg-white/5 text-left text-gray-300 hover:bg-white/10 hover:border-brand transition-all";
+                btn.innerText = topic;
+                btn.onclick = () => {
+                    if (state.interests.includes(topic)) {
+                        state.interests = state.interests.filter(t => t !== topic);
+                        btn.classList.remove('bg-brand', 'text-white', 'border-brand');
+                        btn.classList.add('bg-white/5', 'text-gray-300');
+                    } else {
+                        state.interests.push(topic);
+                        btn.classList.remove('bg-white/5', 'text-gray-300');
+                        btn.classList.add('bg-brand', 'text-white', 'border-brand');
+                    }
+                    
+                    const startBtn = document.getElementById('btn-start');
+                    startBtn.disabled = state.interests.length < 3;
+                    startBtn.innerText = state.interests.length < 3 ? `Elige ${3 - state.interests.length} más` : "Comenzar";
+                };
+                grid.appendChild(btn);
+            });
+        }
+
+        function startApp() {
+            saveState();
+            const ob = document.getElementById('onboarding');
+            ob.style.transform = 'translateY(-100%)';
+            setTimeout(() => {
+                ob.style.display = 'none';
+                generateCard();
+                generateCard();
+            }, 700);
+            updateSidebarUI();
+        }
+
+        function toggleLike(btn) {
+            const icon = btn.querySelector('svg');
+            if (btn.classList.contains('bg-pink-500')) {
+                btn.classList.remove('bg-pink-500', 'text-white', 'border-transparent');
+                btn.classList.add('bg-white/5', 'text-gray-300');
+                icon.setAttribute('fill', 'none');
+                state.likes.pop(); // Simplificado
+            } else {
+                btn.classList.add('bg-pink-500', 'text-white', 'border-transparent');
+                btn.classList.remove('bg-white/5', 'text-gray-300');
+                icon.setAttribute('fill', 'currentColor');
+                state.likes.push(Date.now());
+            }
+            updateStats();
+            saveState();
+        }
+
+        function toggleSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            const overlay = document.getElementById('sidebar-overlay');
+            const isClosed = sidebar.classList.contains('translate-x-full');
+            
+            if (isClosed) {
+                overlay.classList.remove('hidden');
+                setTimeout(() => overlay.classList.remove('opacity-0'), 10);
+                sidebar.classList.remove('translate-x-full');
+            } else {
+                sidebar.classList.add('translate-x-full');
+                overlay.classList.add('opacity-0');
+                setTimeout(() => overlay.classList.add('hidden'), 300);
+            }
+        }
+
+        function updateSidebarUI() {
+            const list = document.getElementById('active-topics-list');
+            list.innerHTML = '';
+            state.interests.forEach(topic => {
+                const div = document.createElement('div');
+                div.className = "flex items-center gap-2 text-gray-300";
+                div.innerHTML = `<div class="w-2 h-2 rounded-full bg-brand"></div> ${topic}`;
+                list.appendChild(div);
+            });
+            updateStats();
+        }
+
+        function updateStats() {
+            document.getElementById('stat-likes').innerText = state.likes.length;
+            document.getElementById('stat-reads').innerText = state.history.length;
+        }
+
+        function shareData(title, url) {
+            if (navigator.share) {
+                navigator.share({ title: 'Essence', text: `Aprendí sobre: ${title}`, url: url });
+            } else {
+                alert("Enlace copiado al portapapeles: " + url);
+            }
+        }
+
+        function saveState() {
+            localStorage.setItem('essence_live_state', JSON.stringify(state));
+        }
+
+        function resetApp() {
+            if(confirm("¿Borrar todo?")) {
+                localStorage.removeItem('essence_live_state');
+                location.reload();
+            }
+        }
+
+        // Arrancar
+        window.onload = init;
+
+    </script>
+</body>
 </html>
