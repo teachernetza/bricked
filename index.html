@@ -158,6 +158,7 @@
     let selectedTopics = ['fisica', 'biologia', 'psicologia'];
     let likedCards = new Map();
     let currentCardIndex = 0;
+    let isInitialized = false;
 
     // Topics data organized by categories
     const topics = [
@@ -335,63 +336,79 @@
 
     // Initialize app
     async function initApp() {
-      // Initialize Element SDK
-      window.elementSdk.init({
-        defaultConfig,
-        onConfigChange: async (newConfig) => {
-          config = { ...defaultConfig, ...newConfig };
-          applyConfig();
-        },
-        mapToCapabilities: (cfg) => ({
-          recolorables: [
-            {
-              get: () => cfg.background_color || defaultConfig.background_color,
-              set: (v) => { cfg.background_color = v; window.elementSdk.setConfig({ background_color: v }); }
-            },
-            {
-              get: () => cfg.surface_color || defaultConfig.surface_color,
-              set: (v) => { cfg.surface_color = v; window.elementSdk.setConfig({ surface_color: v }); }
-            },
-            {
-              get: () => cfg.text_color || defaultConfig.text_color,
-              set: (v) => { cfg.text_color = v; window.elementSdk.setConfig({ text_color: v }); }
-            },
-            {
-              get: () => cfg.primary_action || defaultConfig.primary_action,
-              set: (v) => { cfg.primary_action = v; window.elementSdk.setConfig({ primary_action: v }); }
-            },
-            {
-              get: () => cfg.secondary_action || defaultConfig.secondary_action,
-              set: (v) => { cfg.secondary_action = v; window.elementSdk.setConfig({ secondary_action: v }); }
-            }
-          ],
-          borderables: [],
-          fontEditable: undefined,
-          fontSizeable: undefined
-        }),
-        mapToEditPanelValues: (cfg) => new Map([
-          ['app_title', cfg.app_title || defaultConfig.app_title],
-          ['tagline', cfg.tagline || defaultConfig.tagline]
-        ])
-      });
+      if (isInitialized) return;
+      isInitialized = true;
 
-      // Initialize Data SDK
-      const initResult = await window.dataSdk.init(dataHandler);
-      if (!initResult.isOk) {
-        console.error('Failed to initialize data SDK');
+      try {
+        // Initialize Element SDK if available
+        if (window.elementSdk) {
+          window.elementSdk.init({
+            defaultConfig,
+            onConfigChange: async (newConfig) => {
+              config = { ...defaultConfig, ...newConfig };
+              applyConfig();
+            },
+            mapToCapabilities: (cfg) => ({
+              recolorables: [
+                {
+                  get: () => cfg.background_color || defaultConfig.background_color,
+                  set: (v) => { cfg.background_color = v; window.elementSdk.setConfig({ background_color: v }); }
+                },
+                {
+                  get: () => cfg.surface_color || defaultConfig.surface_color,
+                  set: (v) => { cfg.surface_color = v; window.elementSdk.setConfig({ surface_color: v }); }
+                },
+                {
+                  get: () => cfg.text_color || defaultConfig.text_color,
+                  set: (v) => { cfg.text_color = v; window.elementSdk.setConfig({ text_color: v }); }
+                },
+                {
+                  get: () => cfg.primary_action || defaultConfig.primary_action,
+                  set: (v) => { cfg.primary_action = v; window.elementSdk.setConfig({ primary_action: v }); }
+                },
+                {
+                  get: () => cfg.secondary_action || defaultConfig.secondary_action,
+                  set: (v) => { cfg.secondary_action = v; window.elementSdk.setConfig({ secondary_action: v }); }
+                }
+              ],
+              borderables: [],
+              fontEditable: undefined,
+              fontSizeable: undefined
+            }),
+            mapToEditPanelValues: (cfg) => new Map([
+              ['app_title', cfg.app_title || defaultConfig.app_title],
+              ['tagline', cfg.tagline || defaultConfig.tagline]
+            ])
+          });
+        }
+
+        // Initialize Data SDK if available
+        if (window.dataSdk) {
+          const initResult = await window.dataSdk.init(dataHandler);
+          if (!initResult.isOk) {
+            console.error('Failed to initialize data SDK');
+          }
+        }
+
+        // Render topics
+        renderTopics();
+        
+        // Render initial cards
+        renderCards();
+        
+        // Setup infinite scroll
+        setupInfiniteScroll();
+        
+        // Apply initial config
+        applyConfig();
+      } catch (err) {
+        console.error('Initialization error:', err);
+        // Continue anyway - app can work without SDKs
+        renderTopics();
+        renderCards();
+        setupInfiniteScroll();
+        applyConfig();
       }
-
-      // Render topics
-      renderTopics();
-      
-      // Render initial cards
-      renderCards();
-      
-      // Setup infinite scroll
-      setupInfiniteScroll();
-      
-      // Apply initial config
-      applyConfig();
     }
 
     // Apply configuration to UI
@@ -755,6 +772,26 @@
       overlay.classList.add('opacity-0', 'pointer-events-none');
     }
 
+    // Attach menu button click handler directly
+    function attachMenuHandlers() {
+      const menuBtn = document.getElementById('menu-btn');
+      if (menuBtn) {
+        menuBtn.removeEventListener('click', openMenu);
+        menuBtn.addEventListener('click', openMenu);
+      }
+      
+      const overlay = document.getElementById('menu-overlay');
+      if (overlay) {
+        overlay.removeEventListener('click', closeMenu);
+        overlay.addEventListener('click', closeMenu);
+      }
+      
+      const closeBtn = document.querySelector('[onclick="closeMenu()"]');
+      if (closeBtn) {
+        closeBtn.onclick = closeMenu;
+      }
+    }
+
     // Theme toggle
     function toggleTheme() {
       isDarkMode = !isDarkMode;
@@ -817,8 +854,16 @@
     // Event listeners
     document.getElementById('menu-btn').addEventListener('click', openMenu);
 
-    // Initialize
-    initApp();
+    // Initialize when DOM is ready
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', () => {
+        initApp();
+        attachMenuHandlers();
+      });
+    } else {
+      initApp();
+      attachMenuHandlers();
+    }
   </script>
- <script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9cadc43c565ad875',t:'MTc3MDU4MTM4NS4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+ <script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9cadce99b4daca02',t:'MTc3MDU4MTgxMC4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
