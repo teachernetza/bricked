@@ -3,72 +3,58 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <meta name="description" content="Bricked - Adaptive Knowledge OS">
-    <meta name="theme-color" content="#050505">
+    <meta name="description" content="Bricked - Ambient Knowledge OS">
+    <meta name="theme-color" content="#000000">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <title>BRICKED | Adaptive</title>
+    <title>BRICKED | Ambient</title>
 
     <script src="https://cdn.tailwindcss.com"></script>
-    
     <script src="https://unpkg.com/lucide@latest"></script>
-    
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.0/papaparse.min.js"></script>
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500&family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;700&family=Instrument+Serif:ital@0;1&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 
     <script>
         /**
-         * ⚠️ CONFIGURACIÓN DEL USUARIO ⚠️
-         * Pega aquí el enlace CSV publicado de tu Google Sheet.
-         * Columnas requeridas: Categoria, Titulo, Resumen, Fuente, Link, ImagenKeyword
+         * ⚠️ PEGA AQUÍ TU LINK CSV DE GOOGLE SHEETS ⚠️
          */
         const GOOGLE_SHEET_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRH7tvjL9usAdbPX9T4hVaPjbk0eykei7sghqShiMzUMvUtpH80BEniasmAWBlgtjH4UjVy5dJBT-So/pub?output=csv"; 
 
-        // Tailwind Config - Sistema de Diseño
+        // Configuración de Diseño "Ambient"
         tailwind.config = {
             darkMode: 'class',
             theme: {
                 extend: {
                     fontFamily: {
-                        sans: ['Inter', 'sans-serif'],
-                        serif: ['Playfair Display', 'serif'],
+                        sans: ['Space Grotesk', 'sans-serif'],
+                        serif: ['Instrument Serif', 'serif'],
                         mono: ['JetBrains Mono', 'monospace'],
                     },
                     colors: {
-                        // Paleta "Obsidian & Brick"
-                        bg: '#050505',
+                        bg: '#000000',
                         surface: '#0A0A0A',
-                        surfaceHighlight: '#141414',
-                        border: 'rgba(255, 255, 255, 0.08)',
+                        border: 'rgba(255, 255, 255, 0.1)',
                         
-                        // Acentos
-                        primary: '#D62828',    // Rojo Intenso
-                        accent: '#F77F00',     // Naranja Fuego
-                        
-                        // Textos
-                        txtMain: '#F1F1F1',
-                        txtMuted: '#888888',
+                        // Sistema de Colores Semánticos (Fallbacks)
+                        tech: '#3B82F6',   // Azul
+                        science: '#10B981', // Verde
+                        art: '#D946EF',    // Rosa
+                        history: '#F59E0B', // Dorado
+                        default: '#6366F1' // Índigo
                     },
-                    height: {
-                        'dvh': '100dvh', 
-                    },
+                    height: { 'dvh': '100dvh' },
                     animation: {
-                        'fade-in': 'fadeIn 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards',
+                        'float': 'float 10s ease-in-out infinite',
                         'slide-up': 'slideUp 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards',
-                        'pulse-slow': 'pulse 4s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+                        'pulse-glow': 'pulseGlow 4s ease-in-out infinite',
                     },
                     keyframes: {
-                        slideUp: {
-                            '0%': { transform: 'translateY(40px)', opacity: '0' },
-                            '100%': { transform: 'translateY(0)', opacity: '1' },
-                        },
-                        fadeIn: {
-                            '0%': { opacity: '0' },
-                            '100%': { opacity: '1' },
-                        }
+                        float: { '0%, 100%': { transform: 'translateY(0)' }, '50%': { transform: 'translateY(-20px)' } },
+                        slideUp: { '0%': { transform: 'translateY(40px)', opacity: '0' }, '100%': { transform: 'translateY(0)', opacity: '1' } },
+                        pulseGlow: { '0%, 100%': { opacity: '0.4' }, '50%': { opacity: '0.7' } }
                     }
                 }
             }
@@ -76,173 +62,143 @@
     </script>
 
     <style>
-        /* Reset y Base */
-        :root {
-            --safe-top: env(safe-area-inset-top, 20px);
-            --safe-bottom: env(safe-area-inset-bottom, 20px);
-        }
+        /* Reset */
+        :root { --safe-top: env(safe-area-inset-top, 20px); --safe-bottom: env(safe-area-inset-bottom, 20px); }
+        body { background-color: #000; color: #FFF; overflow: hidden; overscroll-behavior-y: none; -webkit-font-smoothing: antialiased; }
 
-        body { 
-            background-color: #050505; 
-            color: #F1F1F1; 
-            overflow: hidden; 
-            overscroll-behavior-y: none;
-            -webkit-font-smoothing: antialiased;
-        }
-
-        /* Scroll Engine Invisible */
+        /* Scroll Engine */
         .no-scrollbar::-webkit-scrollbar { display: none; }
         .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
-
+        
         #feed-engine {
-            height: 100dvh;
-            width: 100vw;
-            overflow-y: scroll;
-            scroll-snap-type: y mandatory;
-            scroll-behavior: smooth;
-            position: relative;
-            z-index: 10;
+            height: 100dvh; width: 100vw;
+            overflow-y: scroll; scroll-snap-type: y mandatory; scroll-behavior: smooth;
+            position: relative; z-index: 10;
         }
 
         .brick-card {
-            scroll-snap-align: start;
-            scroll-snap-stop: always;
-            height: 100dvh;
-            width: 100vw;
-            position: relative;
-            overflow: hidden;
-            display: flex;
-            flex-direction: column;
-            background-color: #050505;
+            scroll-snap-align: start; scroll-snap-stop: always;
+            height: 100dvh; width: 100vw;
+            position: relative; overflow: hidden;
+            display: flex; flex-direction: column;
+            background-color: #000;
         }
 
-        /* Texturas y Efectos */
-        .bg-grain {
-            position: fixed;
-            top: 0; left: 0; width: 100%; height: 100%;
-            pointer-events: none;
-            z-index: 50;
-            opacity: 0.04;
-            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
+        /* Ambient Orbs (Las bolas de luz de fondo) */
+        .ambient-orb {
+            position: absolute; border-radius: 50%;
+            filter: blur(80px); opacity: 0.6;
+            z-index: 0; pointer-events: none;
         }
 
-        .text-glow {
-            text-shadow: 0 4px 20px rgba(0,0,0,0.8);
+        /* Emoji Gigante de Fondo (Marca de Agua) */
+        .watermark-emoji {
+            position: absolute; top: 10%; right: -10%;
+            font-size: 400px; opacity: 0.05;
+            filter: blur(10px) grayscale(100%);
+            transform: rotate(-15deg);
+            z-index: 0; pointer-events: none;
+            user-select: none;
         }
-        
-        /* Glassmorphism Refinado */
-        .glass-panel {
-            background: rgba(10, 10, 10, 0.85);
-            backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
+
+        /* Glassmorphism Sidebar */
+        .glass-sidebar {
+            background: rgba(10, 10, 10, 0.8);
+            backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px);
             border-left: 1px solid rgba(255, 255, 255, 0.08);
-            box-shadow: -10px 0 40px rgba(0,0,0,0.8);
         }
 
-        /* Toggles Personalizados */
-        .toggle-checkbox:checked {
-            right: 0;
-            border-color: #D62828;
+        /* Text Styles */
+        .text-glow-sm { text-shadow: 0 0 10px rgba(255,255,255,0.3); }
+        .text-glow-lg { text-shadow: 0 0 30px rgba(0,0,0,0.8); }
+
+        /* Toggles */
+        .toggle-switch {
+            appearance: none; width: 40px; height: 20px;
+            background: #222; border-radius: 20px; position: relative;
+            cursor: pointer; transition: 0.3s;
         }
-        .toggle-checkbox:checked + .toggle-label {
-            background-color: #D62828;
+        .toggle-switch::after {
+            content: ''; position: absolute; top: 2px; left: 2px;
+            width: 16px; height: 16px; background: #666; border-radius: 50%;
+            transition: 0.3s;
         }
-        
-        /* Loader Animation */
-        .loader-bar {
-            width: 4px;
-            height: 100%;
-            background: #D62828;
-            animation: loadY 1s ease-in-out infinite;
-        }
-        @keyframes loadY { 0%, 100% { height: 10%; } 50% { height: 100%; } }
+        .toggle-switch:checked { background: #FFF; }
+        .toggle-switch:checked::after { transform: translateX(20px); background: #000; }
+
+        /* Loader */
+        .pulse-bar { width: 4px; height: 20px; background: white; animation: pulseHeight 1s infinite ease-in-out; }
+        @keyframes pulseHeight { 0%, 100% { height: 10px; opacity: 0.5; } 50% { height: 30px; opacity: 1; } }
 
     </style>
 </head>
-<body class="antialiased selection:bg-primary selection:text-white">
+<body class="antialiased selection:bg-white selection:text-black">
 
-    <div class="bg-grain"></div>
-
-    <div id="splash-screen" class="fixed inset-0 z-[100] bg-bg flex flex-col items-center justify-center transition-opacity duration-700">
-        <div class="relative flex gap-2 h-12 items-center mb-6">
-            <div class="loader-bar" style="animation-delay: 0s"></div>
-            <div class="loader-bar" style="animation-delay: 0.1s"></div>
-            <div class="loader-bar" style="animation-delay: 0.2s"></div>
-            <div class="loader-bar" style="animation-delay: 0.3s"></div>
+    <div id="splash" class="fixed inset-0 z-[100] bg-black flex flex-col items-center justify-center transition-opacity duration-700">
+        <div class="flex gap-1.5 mb-8">
+            <div class="pulse-bar" style="animation-delay: 0s"></div>
+            <div class="pulse-bar" style="animation-delay: 0.1s"></div>
+            <div class="pulse-bar" style="animation-delay: 0.2s"></div>
         </div>
-        <h1 class="text-4xl font-serif font-bold text-white tracking-tight mb-2">BRICKED</h1>
-        <p class="text-xs font-mono text-primary uppercase tracking-[0.3em]">Adaptive Engine</p>
-        <p id="loading-status" class="mt-8 text-[10px] font-mono text-txtMuted animate-pulse">Conectando base de datos...</p>
+        <h1 class="text-6xl font-serif italic text-white tracking-tighter mix-blend-difference z-10">Bricked.</h1>
+        <p class="text-[10px] font-mono text-gray-500 uppercase tracking-widest mt-2">Ambient Intelligence</p>
     </div>
 
-    <nav class="fixed top-0 left-0 w-full z-40 px-5 pt-[var(--safe-top)] mt-4 flex justify-between items-start pointer-events-none mix-blend-difference">
-        <div class="pointer-events-auto border border-white/10 bg-black/20 backdrop-blur px-3 py-1.5 flex items-center gap-3 rounded-sm">
-            <div id="live-indicator" class="w-1.5 h-1.5 rounded-full bg-primary animate-pulse"></div>
-            <span class="text-[10px] font-mono font-bold text-white tracking-widest">FEED</span>
+    <nav class="fixed top-0 left-0 w-full z-40 px-6 pt-[var(--safe-top)] mt-6 flex justify-between items-start pointer-events-none mix-blend-exclusion">
+        <div class="pointer-events-auto flex items-center gap-3">
+            <div id="category-pill" class="hidden px-3 py-1 rounded-full border border-white/20 bg-white/10 backdrop-blur text-[10px] font-mono font-bold uppercase tracking-widest text-white">
+                </div>
         </div>
 
-        <button onclick="Sidebar.toggle()" class="pointer-events-auto p-3 border border-white/10 bg-black/20 backdrop-blur text-white hover:bg-white/10 active:scale-95 transition-all group rounded-sm">
-            <i data-lucide="sliders-horizontal" class="w-5 h-5 group-hover:rotate-180 transition-transform duration-500"></i>
+        <button onclick="Sidebar.toggle()" class="pointer-events-auto p-3 rounded-full border border-white/10 bg-white/5 backdrop-blur hover:bg-white/20 transition-all group">
+            <i data-lucide="align-right" class="w-6 h-6 text-white group-hover:scale-110 transition-transform"></i>
         </button>
     </nav>
 
-    <main id="feed-engine">
-        </main>
+    <main id="feed-engine"></main>
 
-    <div id="loader-infinite" class="fixed bottom-8 left-1/2 -translate-x-1/2 z-30 opacity-0 transition-opacity pointer-events-none pb-[var(--safe-bottom)]">
-        <div class="flex items-center gap-2 px-4 py-2 bg-black/80 backdrop-blur border border-white/10 rounded-full">
-            <div class="w-3 h-3 border-2 border-primary border-t-transparent rounded-full animate-spin"></div>
-            <span class="text-[10px] font-mono text-white uppercase">Cargando</span>
-        </div>
+    <div id="loader-bottom" class="fixed bottom-10 left-1/2 -translate-x-1/2 z-30 opacity-0 transition-opacity pointer-events-none">
+        <div class="w-1 h-8 bg-gradient-to-b from-transparent via-white to-transparent animate-pulse"></div>
     </div>
 
     <div id="toast-zone" class="fixed top-24 left-1/2 -translate-x-1/2 z-[60] flex flex-col gap-2 w-max max-w-[90vw] pointer-events-none"></div>
 
-    <div id="sidebar-backdrop" onclick="Sidebar.toggle()" class="fixed inset-0 z-[45] bg-black/90 backdrop-blur-sm hidden opacity-0 transition-opacity duration-500"></div>
+    <div id="sidebar-backdrop" onclick="Sidebar.toggle()" class="fixed inset-0 z-[45] bg-black/60 backdrop-blur-sm hidden opacity-0 transition-opacity duration-500"></div>
     
-    <aside id="sidebar-panel" class="fixed inset-y-0 right-0 z-[50] w-80 glass-panel transform translate-x-full transition-transform duration-500 ease-out flex flex-col bg-[#0a0a0a]">
+    <aside id="sidebar-panel" class="fixed inset-y-0 right-0 z-[50] w-80 glass-sidebar transform translate-x-full transition-transform duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] flex flex-col">
         
-        <div class="pt-[var(--safe-top)] mt-4 px-6 pb-6 border-b border-border flex justify-between items-center bg-black/20">
-            <div>
-                <h2 class="font-serif font-bold text-xl text-white tracking-tight">Preferencias</h2>
-                <p class="text-[10px] font-mono text-txtMuted mt-1">Personaliza tu algoritmo</p>
-            </div>
-            <button onclick="Sidebar.toggle()" class="text-txtMuted hover:text-white transition p-2 bg-white/5 rounded-full"><i data-lucide="x" class="w-5 h-5"></i></button>
+        <div class="pt-[var(--safe-top)] px-8 pb-8 pt-8 flex justify-between items-end border-b border-white/5">
+            <h2 class="font-serif text-3xl italic text-white">Ajustes</h2>
+            <button onclick="Sidebar.toggle()" class="text-gray-400 hover:text-white transition"><i data-lucide="x" class="w-6 h-6"></i></button>
         </div>
 
-        <div class="flex-1 overflow-y-auto p-6 no-scrollbar">
+        <div class="flex-1 overflow-y-auto p-8 no-scrollbar">
             
-            <div class="mb-8">
-                <div class="flex justify-between items-center mb-4">
-                    <h3 class="text-[10px] font-mono text-primary uppercase tracking-widest font-bold">Categorías Activas</h3>
-                    <button onclick="App.resetFilters()" class="text-[10px] text-txtMuted underline hover:text-white">Mostrar Todo</button>
+            <div class="grid grid-cols-2 gap-4 mb-10">
+                <div class="p-4 rounded-xl bg-white/5 border border-white/5">
+                    <span id="stat-read" class="block text-3xl font-serif text-white mb-1">0</span>
+                    <span class="text-[9px] font-mono text-gray-400 uppercase tracking-wider">Leídos</span>
                 </div>
-                
-                <div id="filter-list" class="space-y-3">
-                    </div>
+                <div class="p-4 rounded-xl bg-white/5 border border-white/5">
+                    <span id="stat-likes" class="block text-3xl font-serif text-white mb-1">0</span>
+                    <span class="text-[9px] font-mono text-gray-400 uppercase tracking-wider">Favoritos</span>
+                </div>
             </div>
 
-            <div class="mb-8 pt-6 border-t border-border">
-                <h3 class="text-[10px] font-mono text-txtMuted uppercase mb-4 tracking-widest">Tu Progreso</h3>
-                <div class="grid grid-cols-2 gap-3">
-                    <div class="bg-surfaceHighlight p-4 border border-border rounded-lg">
-                        <span id="stat-read" class="block text-2xl font-serif font-bold text-white mb-1">0</span>
-                        <span class="text-[9px] font-mono font-bold text-txtMuted uppercase">Vistos</span>
-                    </div>
-                    <div class="bg-surfaceHighlight p-4 border border-border rounded-lg">
-                        <span id="stat-likes" class="block text-2xl font-serif font-bold text-primary mb-1">0</span>
-                        <span class="text-[9px] font-mono font-bold text-txtMuted uppercase">Likes</span>
-                    </div>
+            <div class="mb-10">
+                <div class="flex justify-between items-center mb-6">
+                    <h3 class="text-xs font-mono text-gray-400 uppercase tracking-widest">Filtros Activos</h3>
+                    <button onclick="App.resetFilters()" class="text-[10px] text-white underline opacity-50 hover:opacity-100">Reset</button>
                 </div>
+                <div id="filter-list" class="space-y-4"></div>
             </div>
 
             <div class="mt-auto space-y-3">
-                <button onclick="App.reloadDB()" class="w-full py-3 bg-surfaceHighlight border border-border text-white text-xs font-mono uppercase hover:bg-white/10 transition flex items-center justify-center gap-2 rounded-sm">
-                    <i data-lucide="refresh-cw" class="w-3 h-3"></i> Sincronizar
+                <button onclick="App.reloadDB()" class="w-full py-4 bg-white text-black font-mono text-xs font-bold uppercase hover:bg-gray-200 transition rounded-lg">
+                    Sincronizar Datos
                 </button>
-                
-                <button onclick="App.hardReset()" class="w-full py-3 border border-red-900/40 text-red-500 text-xs font-mono uppercase hover:bg-red-900/10 transition flex items-center justify-center gap-2 rounded-sm">
-                    <i data-lucide="trash-2" class="w-3 h-3"></i> Reset Fábrica
+                <button onclick="App.hardReset()" class="w-full py-4 border border-white/10 text-red-400 font-mono text-xs uppercase hover:bg-red-900/10 transition rounded-lg">
+                    Borrar Todo
                 </button>
             </div>
         </div>
@@ -251,222 +207,187 @@
     <script>
         
         /**
-         * MÓDULO 1: MOCK DATA (Fallback)
-         * Datos de respaldo de alta calidad para cuando no hay Sheet.
+         * 🎨 THEME ENGINE (AMBIENT STYLE)
+         * Mapea categorías a colores y emojis automáticamente.
          */
+        const ThemeEngine = {
+            // Diccionario de categorías y sus estilos visuales
+            map: {
+                "Tecnología": { color: "#3B82F6", emoji: "🦾" }, // Azul Robot
+                "IA": { color: "#6366F1", emoji: "🧠" }, // Indigo Cerebro
+                "Programación": { color: "#10B981", emoji: "💻" }, // Verde Laptop
+                
+                "Ciencia": { color: "#14B8A6", emoji: "🔬" }, // Teal Micro
+                "Física": { color: "#8B5CF6", emoji: "⚛️" }, // Violeta Atomo
+                "Astronomía": { color: "#0EA5E9", emoji: "🪐" }, // Sky Planeta
+                "Biología": { color: "#22C55E", emoji: "🧬" }, // Verde ADN
+                "Química": { color: "#A855F7", emoji: "🧪" }, // Purple Tubo
+
+                "Historia": { color: "#D97706", emoji: "🏛️" }, // Amber Columna
+                "Filosofía": { color: "#78716C", emoji: "🗿" }, // Stone Estatua
+                "Arte": { color: "#EC4899", emoji: "🎨" }, // Pink Paleta
+                "Literatura": { color: "#F59E0B", emoji: "✒️" }, // Gold Pluma
+
+                "Psicología": { color: "#F43F5E", emoji: "🧩" }, // Rose Puzzle
+                "Economía": { color: "#16A34A", emoji: "📈" }, // Green Graph
+                "Negocios": { color: "#0F172A", emoji: "💼" }, // Slate Maletin
+
+                "Curiosidades": { color: "#EAB308", emoji: "💡" }, // Yellow Foco
+                "Música": { color: "#F97316", emoji: "🎵" }, // Orange Nota
+                "Cine": { color: "#DC2626", emoji: "🎬" } // Red Claqueta
+            },
+
+            get(category) {
+                // Normalizar categoría (quitar espacios, minúsculas, etc para buscar)
+                const key = Object.keys(this.map).find(k => k.toLowerCase() === category.toLowerCase());
+                
+                if (key) return this.map[key];
+
+                // Generador de color aleatorio consistente para categorías desconocidas
+                const hash = category.split("").reduce((a, b) => { a = ((a << 5) - a) + b.charCodeAt(0); return a & a }, 0);
+                const colors = ["#3B82F6", "#10B981", "#F59E0B", "#EC4899", "#8B5CF6"];
+                return {
+                    color: colors[Math.abs(hash) % colors.length],
+                    emoji: "✨" // Emoji genérico elegante
+                };
+            }
+        };
+
         const MOCK_DB = [
-            { Categoria: "Tecnología", Titulo: "La Singularidad Tecnológica", Resumen: "Un punto hipotético en el futuro donde el crecimiento tecnológico se vuelve incontrolable e irreversible, resultando en cambios insondables para la civilización humana.", Fuente: "Kurzweil AI", Link: "#", ImagenKeyword: "Artificial Intelligence Abstract" },
-            { Categoria: "Física", Titulo: "Materia Oscura", Resumen: "Aproximadamente el 85% de la materia del universo es 'oscura', lo que significa que no interactúa con el campo electromagnético. No la vemos, pero su gravedad mantiene unidas a las galaxias.", Fuente: "CERN", Link: "#", ImagenKeyword: "Dark Matter Space" },
-            { Categoria: "Arte", Titulo: "Wabi-Sabi", Resumen: "Una estética japonesa centrada en la aceptación de la fugacidad y la imperfección. A veces se describe como belleza que es 'imperfecta, impermanente e incompleta'.", Fuente: "Kyoto Journal", Link: "#", ImagenKeyword: "Japanese Pottery Texture" },
-            { Categoria: "Psicología", Titulo: "Efecto Stroop", Resumen: "Demuestra la interferencia en el tiempo de reacción de una tarea. Cuando el nombre de un color (ej. 'Azul') está escrito en tinta roja, tardamos más en nombrar el color de la tinta.", Fuente: "Neuroscience News", Link: "#", ImagenKeyword: "Optical Illusion" },
-            { Categoria: "Filosofía", Titulo: "Alegoría de la Caverna", Resumen: "Platón describe a prisioneros que solo ven sombras en una pared y creen que son la realidad. Al salir, descubren que la verdad es mucho más compleja y brillante.", Fuente: "Stanford Encyclopedia", Link: "#", ImagenKeyword: "Cave Light Philosophy" },
-            { Categoria: "Historia", Titulo: "Mecanismo de Anticitera", Resumen: "Una computadora analógica antigua diseñada para predecir posiciones astronómicas y eclipses. Fue construida por los griegos alrededor del 150 a.C., mil años antes de algo similar.", Fuente: "Nature", Link: "#", ImagenKeyword: "Ancient Gear Mechanism" },
-            { Categoria: "Biología", Titulo: "CRISPR-Cas9", Resumen: "Una tecnología revolucionaria que permite a los genetistas y médicos editar partes del genoma eliminando, agregando o alterando secciones de la secuencia de ADN.", Fuente: "Science Mag", Link: "#", ImagenKeyword: "DNA Helix" }
+            { Categoria: "Tecnología", Titulo: "Ley de Moore", Resumen: "La observación de que el número de transistores en un microchip se duplica cada dos años. Sin embargo, estamos llegando al límite físico atómico.", Fuente: "Intel", Link: "#" },
+            { Categoria: "Física", Titulo: "Entrelazamiento", Resumen: "Dos partículas pueden estar unidas de tal forma que el estado de una afecta instantáneamente a la otra, sin importar la distancia (incluso años luz).", Fuente: "Nature", Link: "#" },
+            { Categoria: "Filosofía", Titulo: "Estoicismo", Resumen: "No controlas lo que te sucede, solo cómo reaccionas. La paz mental viene de distinguir entre lo que depende de ti y lo que no.", Fuente: "Seneca", Link: "#" },
+            { Categoria: "Arte", Titulo: "Wabi-Sabi", Resumen: "Estética japonesa basada en la aceptación de la transitoriedad y la imperfección. Nada dura, nada está completo y nada es perfecto.", Fuente: "Japan Arts", Link: "#" }
         ];
 
-        /**
-         * MÓDULO 2: STORE & STATE
-         * Gestión de persistencia y lógica de usuario.
-         */
-        const AppStore = {
-            key: 'bricked_adaptive_v2',
-            state: {
-                viewedIDs: [], // Lista de Títulos vistos
-                likedIDs: [],  // Lista de Títulos likeados
-                likedCategories: {}, // Mapa de frecuencia: { "Física": 5, "Arte": 2 }
-                activeFilters: [], // Categorías activas (Vacío = Todas)
-            },
-
-            init() {
-                const saved = localStorage.getItem(this.key);
-                if (saved) this.state = JSON.parse(saved);
-            },
-
-            save() {
-                localStorage.setItem(this.key, JSON.stringify(this.state));
-            },
-
-            markViewed(id) {
-                if (!this.state.viewedIDs.includes(id)) {
-                    this.state.viewedIDs.push(id);
-                    // Mantener historial limpio (Max 500)
-                    if (this.state.viewedIDs.length > 500) this.state.viewedIDs.shift();
-                    this.save();
-                }
-            },
-
-            toggleLike(item) {
-                const id = item.Titulo;
-                const cat = item.Categoria;
-                let isLiked = false;
-
-                if (this.state.likedIDs.includes(id)) {
-                    // Remove Like
-                    this.state.likedIDs = this.state.likedIDs.filter(x => x !== id);
-                    if (this.state.likedCategories[cat]) this.state.likedCategories[cat]--;
-                    isLiked = false;
-                } else {
-                    // Add Like
-                    this.state.likedIDs.push(id);
-                    this.state.likedCategories[cat] = (this.state.likedCategories[cat] || 0) + 1;
-                    isLiked = true;
-                }
-                this.save();
-                return isLiked;
-            },
-
-            toggleFilter(cat) {
-                if (this.state.activeFilters.includes(cat)) {
-                    this.state.activeFilters = this.state.activeFilters.filter(c => c !== cat);
-                } else {
-                    this.state.activeFilters.push(cat);
-                }
-                this.save();
-                return this.state.activeFilters.includes(cat);
+        // --- STORE ---
+        const Store = {
+            key: 'bricked_ambient_v3',
+            state: { viewed: [], likes: [], activeFilters: [], likedCats: {} },
+            init() { const s = localStorage.getItem(this.key); if(s) this.state = JSON.parse(s); },
+            save() { localStorage.setItem(this.key, JSON.stringify(this.state)); },
+            
+            markViewed(id) { 
+                if(!this.state.viewed.includes(id)) { 
+                    this.state.viewed.push(id); 
+                    if(this.state.viewed.length > 500) this.state.viewed.shift();
+                    this.save(); 
+                } 
             },
             
-            resetFilters() {
-                this.state.activeFilters = [];
+            toggleLike(item) {
+                const id = item.Titulo;
+                if(this.state.likes.includes(id)) {
+                    this.state.likes = this.state.likes.filter(x => x !== id);
+                    if(this.state.likedCats[item.Categoria]) this.state.likedCats[item.Categoria]--;
+                    this.save(); return false;
+                } else {
+                    this.state.likes.push(id);
+                    this.state.likedCats[item.Categoria] = (this.state.likedCats[item.Categoria] || 0) + 1;
+                    this.save(); return true;
+                }
+            },
+            
+            toggleFilter(cat) {
+                this.state.activeFilters.includes(cat) 
+                    ? this.state.activeFilters = this.state.activeFilters.filter(c => c !== cat)
+                    : this.state.activeFilters.push(cat);
                 this.save();
             }
         };
 
-        /**
-         * MÓDULO 3: CONTENT ENGINE
-         * Algoritmo de recomendación y carga.
-         */
-        const ContentSystem = {
+        // --- CONTENT ENGINE ---
+        const Engine = {
             db: [],
-            categories: new Set(),
-
+            cats: new Set(),
+            
             async load() {
                 return new Promise(resolve => {
-                    if (!GOOGLE_SHEET_CSV_URL || GOOGLE_SHEET_CSV_URL.length < 5) {
-                        this.useMock();
-                        resolve();
-                        return;
+                    if(!GOOGLE_SHEET_CSV_URL || GOOGLE_SHEET_CSV_URL.length < 5) {
+                        this.db = MOCK_DB; this.extractCats(); resolve(); return;
                     }
-
                     Papa.parse(GOOGLE_SHEET_CSV_URL, {
-                        download: true,
-                        header: true,
-                        skipEmptyLines: true,
-                        complete: (results) => {
-                            const validData = results.data.filter(r => r.Titulo && r.Categoria);
-                            if (validData.length > 0) {
-                                this.db = validData;
-                                this.extractCategories();
-                                resolve();
-                            } else {
-                                this.useMock();
-                                resolve();
-                            }
+                        download: true, header: true, skipEmptyLines: true,
+                        complete: (res) => {
+                            const valid = res.data.filter(r => r.Titulo && r.Categoria);
+                            this.db = valid.length ? valid : MOCK_DB;
+                            this.extractCats(); resolve();
                         },
-                        error: () => {
-                            this.useMock();
-                            resolve();
-                        }
+                        error: () => { this.db = MOCK_DB; this.extractCats(); resolve(); }
                     });
                 });
             },
-
-            useMock() {
-                console.warn("Usando Mock Data");
-                this.db = MOCK_DB;
-                this.extractCategories();
-            },
-
-            extractCategories() {
-                this.db.forEach(item => this.categories.add(item.Categoria));
-            },
-
-            /**
-             * 🧠 ALGORITMO ADAPTATIVO
-             * Decide qué tarjeta mostrar a continuación.
-             */
-            getRecommendation() {
-                const { viewedIDs, activeFilters, likedCategories } = AppStore.state;
+            
+            extractCats() { this.db.forEach(i => this.cats.add(i.Categoria)); },
+            
+            getNext() {
+                const { viewed, activeFilters, likedCats } = Store.state;
+                let pool = this.db;
                 
-                // 1. Filtrar Universo (Filtros Activos)
-                let candidates = this.db;
-                if (activeFilters.length > 0) {
-                    candidates = candidates.filter(item => activeFilters.includes(item.Categoria));
-                }
-
-                // 2. Separar Vistos de No Vistos
-                const unviewed = candidates.filter(item => !viewedIDs.includes(item.Titulo));
+                // Filtros
+                if(activeFilters.length > 0) pool = pool.filter(i => activeFilters.includes(i.Categoria));
                 
-                // Pool final a usar (si no hay nuevos, reusamos vistos - Loop)
-                const pool = unviewed.length > 0 ? unviewed : candidates;
+                // No vistos
+                let fresh = pool.filter(i => !viewed.includes(i.Titulo));
+                let candidates = fresh.length > 0 ? fresh : pool; // Fallback loop
+                
+                if(!candidates.length) return null;
 
-                if (pool.length === 0) return null;
-
-                // 3. Sistema de Puntuación (Scoring)
-                // Asignamos un puntaje a cada candidato basado en los Likes previos
-                const scoredCandidates = pool.map(item => {
-                    let score = Math.random() * 10; // Factor aleatorio (Serendipia)
-                    
-                    // Boost por Categoría Likeada
-                    const catLikes = likedCategories[item.Categoria] || 0;
-                    score += (catLikes * 5); // +5 puntos por cada like en esa categoría
-
+                // Scoring (Adaptativo)
+                const scored = candidates.map(item => {
+                    let score = Math.random() * 10;
+                    score += (likedCats[item.Categoria] || 0) * 5; // Boost por likes
                     return { item, score };
                 });
-
-                // 4. Ordenar y Seleccionar Ganador
-                scoredCandidates.sort((a, b) => b.score - a.score);
                 
-                // Tomamos el top 1
-                return scoredCandidates[0].item;
+                scored.sort((a,b) => b.score - a.score);
+                return scored[0].item;
             }
         };
 
-        /**
-         * MÓDULO 4: UI SYSTEM
-         * Renderizado y Control Visual.
-         */
-        const UISystem = {
+        // --- UI ---
+        const UI = {
             container: document.getElementById('feed-engine'),
-            sidebarList: document.getElementById('filter-list'),
-            observer: null,
-
-            // Generador de Tarjetas
+            
             renderCard(data) {
                 const el = document.createElement('article');
-                el.className = 'brick-card bg-bg border-b border-border/10';
+                el.className = 'brick-card bg-black border-b border-white/5';
                 
-                // Generar Imagen IA (Pollinations)
-                const keyword = data.ImagenKeyword || "Abstract minimalism dark";
-                const imgUrl = `https://image.pollinations.ai/prompt/${encodeURIComponent(keyword)}%20cinematic%20lighting%20dark%20moody%204k%20wallpaper?width=720&height=1280&nologo=true&seed=${Math.random()}`;
-                
-                const isLiked = AppStore.state.likedIDs.includes(data.Titulo);
+                // AMBIENT THEME GENERATOR
+                const theme = ThemeEngine.get(data.Categoria);
+                const isLiked = Store.state.likes.includes(data.Titulo);
 
                 el.innerHTML = `
-                    <div class="absolute inset-0 z-0 bg-surface">
-                        <img src="${imgUrl}" 
-                             loading="lazy"
-                             class="w-full h-full object-cover opacity-60 blur-[2px] scale-105 transition-transform duration-[20s] ease-linear hover:scale-110" 
-                             onload="this.style.opacity='0.5'">
-                        <div class="absolute inset-0 bg-gradient-to-t from-bg via-bg/80 to-transparent"></div>
-                        <div class="absolute inset-0 bg-gradient-to-b from-bg/60 to-transparent"></div>
-                        <div class="absolute inset-0 bg-black/20 mix-blend-overlay"></div>
+                    <div class="absolute inset-0 z-0 overflow-hidden">
+                        <div class="ambient-orb w-[600px] h-[600px] -top-20 -left-20 animate-pulse-glow" 
+                             style="background: radial-gradient(circle, ${theme.color} 0%, transparent 70%); opacity: 0.25;"></div>
+                        
+                        <div class="ambient-orb w-[400px] h-[400px] bottom-0 right-0 animate-float" 
+                             style="background: radial-gradient(circle, ${theme.color} 0%, transparent 70%); opacity: 0.15; animation-delay: 2s;"></div>
+
+                        <div class="watermark-emoji">${theme.emoji}</div>
+                        
+                        <div class="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/stardust.png')] opacity-20 mix-blend-overlay"></div>
                     </div>
 
-                    <div class="relative z-10 flex flex-col h-full w-full p-6 pt-24 pb-[calc(var(--safe-bottom)+2rem)]">
+                    <div class="relative z-10 flex flex-col h-full w-full p-8 pt-32 pb-[calc(var(--safe-bottom)+2rem)]">
                         
-                        <div class="flex items-center justify-between opacity-0 animate-slide-up" style="animation-delay: 100ms">
-                            <span class="bg-primary/90 text-white text-[10px] font-mono font-bold uppercase px-3 py-1 tracking-widest rounded-sm shadow-lg shadow-primary/20">
+                        <div class="flex items-center gap-3 opacity-0 animate-slide-up" style="animation-delay: 100ms">
+                            <div class="w-10 h-10 rounded-full bg-white/10 backdrop-blur flex items-center justify-center text-xl shadow-lg border border-white/10">
+                                ${theme.emoji}
+                            </div>
+                            <span class="text-xs font-mono font-bold uppercase tracking-widest text-white/60">
                                 ${data.Categoria}
                             </span>
                         </div>
 
                         <div class="flex flex-col justify-center my-auto opacity-0 animate-slide-up" style="animation-delay: 200ms">
-                            <h2 class="text-4xl md:text-5xl font-serif font-bold leading-[1.1] mb-6 text-white text-glow tracking-tight">
+                            <h2 class="text-5xl md:text-7xl font-serif italic font-thin leading-[0.9] mb-8 text-white text-glow-lg tracking-tighter">
                                 ${data.Titulo}
                             </h2>
                             
-                            <div class="border-l-2 border-primary pl-6 py-2 backdrop-blur-sm bg-black/20 rounded-r-lg">
-                                <p class="text-lg md:text-xl text-txtMain font-sans font-light leading-relaxed">
+                            <div class="border-l border-white/20 pl-6 py-1">
+                                <p class="text-xl md:text-2xl text-gray-300 font-sans font-light leading-relaxed text-glow-sm">
                                     ${data.Resumen}
                                 </p>
                             </div>
@@ -474,17 +395,17 @@
 
                         <div class="mt-auto pt-8 flex items-end justify-between border-t border-white/10 opacity-0 animate-slide-up" style="animation-delay: 300ms">
                             <div class="flex flex-col gap-1 max-w-[60%]">
-                                <span class="text-[9px] font-mono text-txtMuted uppercase tracking-widest">Fuente</span>
-                                <span class="text-xs font-serif font-bold text-white italic truncate">${data.Fuente}</span>
+                                <span class="text-[9px] font-mono text-gray-500 uppercase tracking-widest">Fuente</span>
+                                <span class="text-sm font-serif italic text-white truncate">${data.Fuente}</span>
                             </div>
 
                             <div class="flex gap-4">
-                                <a href="${data.Link}" target="_blank" class="w-12 h-12 flex items-center justify-center bg-white/5 border border-white/10 rounded-full hover:bg-white/20 hover:border-white/30 transition active:scale-95">
-                                    <i data-lucide="arrow-up-right" class="w-5 h-5 text-white"></i>
+                                <a href="${data.Link}" target="_blank" class="w-14 h-14 flex items-center justify-center border border-white/20 rounded-full hover:bg-white hover:text-black transition-all active:scale-90 group">
+                                    <i data-lucide="arrow-up-right" class="w-6 h-6"></i>
                                 </a>
                                 
-                                <button onclick="App.handleLike(this, '${data.Titulo}', '${data.Categoria}')" class="w-12 h-12 flex items-center justify-center bg-white/5 border border-white/10 rounded-full hover:bg-white/20 transition active:scale-95 group">
-                                    <i data-lucide="heart" class="w-5 h-5 transition-colors duration-300 ${isLiked ? 'text-primary fill-primary' : 'text-txtMuted group-hover:text-white'}"></i>
+                                <button onclick="App.handleLike(this, '${data.Titulo}', '${data.Categoria}')" class="w-14 h-14 flex items-center justify-center border border-white/20 rounded-full hover:bg-white/10 transition-all active:scale-90 group">
+                                    <i data-lucide="heart" class="w-6 h-6 transition-colors duration-300 ${isLiked ? 'text-red-500 fill-red-500' : 'text-gray-400 group-hover:text-white'}"></i>
                                 </button>
                             </div>
                         </div>
@@ -496,178 +417,130 @@
                 lucide.createIcons();
             },
 
-            // Generador de Sidebar
             renderSidebar() {
-                this.sidebarList.innerHTML = '';
-                const cats = Array.from(ContentSystem.categories).sort();
+                const list = document.getElementById('filter-list');
+                list.innerHTML = '';
+                const cats = Array.from(Engine.cats).sort();
                 
                 cats.forEach(cat => {
-                    const isActive = AppStore.state.activeFilters.includes(cat);
+                    const theme = ThemeEngine.get(cat);
+                    const active = Store.state.activeFilters.includes(cat);
                     
-                    const item = document.createElement('label');
-                    item.className = "flex items-center justify-between p-3 rounded-md bg-surface border border-white/5 cursor-pointer hover:bg-surfaceHighlight transition";
-                    
-                    item.innerHTML = `
-                        <span class="text-xs font-mono font-bold ${isActive ? 'text-white' : 'text-txtMuted'} uppercase">${cat}</span>
-                        <div class="relative inline-block w-10 h-5 align-middle select-none transition duration-200 ease-in">
-                            <input type="checkbox" class="toggle-checkbox absolute block w-5 h-5 rounded-full bg-white border-4 border-surface appearance-none cursor-pointer transition-all duration-300" 
-                                ${isActive ? 'checked' : ''} 
-                                onclick="App.handleFilter('${cat}')"/>
-                            <label class="toggle-label block overflow-hidden h-5 rounded-full bg-gray-800 cursor-pointer border border-white/10"></label>
+                    const div = document.createElement('label');
+                    div.className = "flex items-center justify-between p-4 rounded-xl bg-white/5 border border-white/5 cursor-pointer hover:bg-white/10 transition";
+                    div.innerHTML = `
+                        <div class="flex items-center gap-3">
+                            <span class="text-lg">${theme.emoji}</span>
+                            <span class="font-mono text-xs uppercase font-bold ${active ? 'text-white' : 'text-gray-500'}">${cat}</span>
                         </div>
+                        <input type="checkbox" class="toggle-switch" ${active ? 'checked' : ''} onchange="App.handleFilter('${cat}')">
                     `;
-                    this.sidebarList.appendChild(item);
+                    list.appendChild(div);
                 });
 
-                // Actualizar Stats
-                document.getElementById('stat-read').innerText = AppStore.state.viewedIDs.length;
-                document.getElementById('stat-likes').innerText = AppStore.state.likedIDs.length;
+                document.getElementById('stat-read').innerText = Store.state.viewed.length;
+                document.getElementById('stat-likes').innerText = Store.state.likes.length;
             },
 
-            setupScrollObserver() {
+            setupObserver() {
                 this.observer = new IntersectionObserver((entries) => {
-                    entries.forEach(entry => {
-                        if (entry.isIntersecting) {
-                            const card = entry.target;
-                            
-                            // Registrar Vista
-                            const title = card.querySelector('h2').innerText.trim();
-                            AppStore.markViewed(title);
-                            
-                            // Carga Infinita (Trigger en el penúltimo)
-                            if (!card.nextElementSibling) {
-                                App.loadNext();
-                            }
+                    entries.forEach(e => {
+                        if(e.isIntersecting) {
+                            // Cambiar Pildora del Nav
+                            const cat = e.target.querySelector('.font-mono.uppercase').innerText;
+                            const pill = document.getElementById('category-pill');
+                            pill.innerText = cat;
+                            pill.classList.remove('hidden');
+
+                            // Analytics
+                            const title = e.target.querySelector('h2').innerText.trim();
+                            Store.markViewed(title);
+
+                            // Infinite Load
+                            if(!e.target.nextElementSibling) App.loadNext();
                         }
                     });
-                }, { threshold: 0.6 });
+                }, { threshold: 0.5 });
             },
 
             toast(msg) {
-                const el = document.createElement('div');
-                el.className = "px-4 py-2 bg-black/80 backdrop-blur border border-primary/50 text-white text-xs font-mono font-bold uppercase rounded-full shadow-2xl animate-fade-in flex items-center gap-2";
-                el.innerHTML = `<div class="w-2 h-2 bg-primary rounded-full animate-pulse"></div> ${msg}`;
-                
-                document.getElementById('toast-zone').appendChild(el);
-                setTimeout(() => {
-                    el.style.opacity = '0';
-                    setTimeout(() => el.remove(), 500);
-                }, 2000);
+                const t = document.createElement('div');
+                t.className = "px-6 py-3 bg-white text-black rounded-full font-mono text-xs font-bold uppercase tracking-widest animate-slide-up shadow-2xl";
+                t.innerText = msg;
+                document.getElementById('toast-zone').appendChild(t);
+                setTimeout(() => t.remove(), 2000);
             }
         };
 
-        /**
-         * MÓDULO 5: APP CONTROLLER
-         * Cerebro principal.
-         */
+        // --- APP CONTROLLER ---
         const Sidebar = {
             panel: document.getElementById('sidebar-panel'),
-            backdrop: document.getElementById('sidebar-backdrop'),
+            bg: document.getElementById('sidebar-backdrop'),
             toggle() {
-                const closed = this.panel.classList.contains('translate-x-full');
-                if (closed) {
+                const open = !this.panel.classList.contains('translate-x-full');
+                if(!open) {
                     this.panel.classList.remove('translate-x-full');
-                    this.backdrop.classList.remove('hidden');
-                    setTimeout(() => this.backdrop.classList.remove('opacity-0'), 10);
-                    UISystem.renderSidebar(); // Refrescar estado visual
+                    this.bg.classList.remove('hidden'); setTimeout(() => this.bg.classList.remove('opacity-0'), 10);
+                    UI.renderSidebar();
                 } else {
                     this.panel.classList.add('translate-x-full');
-                    this.backdrop.classList.add('opacity-0');
-                    setTimeout(() => this.backdrop.classList.add('hidden'), 500);
+                    this.bg.classList.add('opacity-0'); setTimeout(() => this.bg.classList.add('hidden'), 500);
                 }
             }
         };
 
         const App = {
             async init() {
-                AppStore.init();
+                Store.init();
+                await Engine.load();
                 
-                // Cargar datos
-                await ContentSystem.load();
-                
-                // Ocultar Splash Screen
-                document.getElementById('loading-status').innerText = "Sistema listo";
-                setTimeout(() => {
-                    const splash = document.getElementById('splash-screen');
-                    splash.style.opacity = '0';
-                    setTimeout(() => splash.style.display = 'none', 700);
-                    
-                    this.startFeed();
-                }, 1000);
+                // Quitar Splash
+                const splash = document.getElementById('splash');
+                splash.style.opacity = '0';
+                setTimeout(() => { splash.remove(); this.start(); }, 700);
             },
 
-            startFeed() {
-                document.getElementById('feed-engine').innerHTML = '';
-                UISystem.setupScrollObserver();
-                document.getElementById('loader-infinite').style.opacity = '1';
-                
-                // Buffer inicial
-                this.loadNext();
-                this.loadNext();
-                this.loadNext(); // Precargar 3 tarjetas
+            start() {
+                UI.setupObserver();
+                document.getElementById('loader-bottom').style.opacity = '1';
+                this.loadNext(); this.loadNext(); this.loadNext();
             },
 
             loadNext() {
-                const data = ContentSystem.getRecommendation();
-                if (data) {
-                    UISystem.renderCard(data);
-                } else {
-                    UISystem.toast("No hay más contenido disponible");
-                }
+                const data = Engine.getNext();
+                if(data) UI.renderCard(data);
+                else UI.toast("Fin del contenido");
             },
 
-            handleLike(btn, title, category) {
-                // Reconstruir objeto mínimo necesario
-                const item = { Titulo: title, Categoria: category };
-                const isLiked = AppStore.toggleLike(item);
-                
+            handleLike(btn, title, cat) {
+                const liked = Store.toggleLike({ Titulo: title, Categoria: cat });
                 const icon = btn.querySelector('svg');
-                if (isLiked) {
-                    icon.classList.add('text-primary', 'fill-primary');
-                    icon.classList.remove('text-txtMuted');
-                    UISystem.toast("Algoritmo ajustado: " + category);
-                    if (navigator.vibrate) navigator.vibrate(50);
+                if(liked) {
+                    icon.classList.add('text-red-500', 'fill-red-500'); icon.classList.remove('text-gray-400');
+                    UI.toast("Guardado");
                 } else {
-                    icon.classList.remove('text-primary', 'fill-primary');
-                    icon.classList.add('text-txtMuted');
+                    icon.classList.remove('text-red-500', 'fill-red-500'); icon.classList.add('text-gray-400');
                 }
-                UISystem.renderSidebar(); // Actualizar contadores
             },
 
             handleFilter(cat) {
-                AppStore.toggleFilter(cat);
-                UISystem.renderSidebar();
-                
-                // Si cambiamos filtros, limpiar feed y recargar para reflejar cambios inmediatamente
-                // Opcional: Podríamos solo aplicar a las siguientes, pero reiniciar es más claro para el usuario
+                Store.toggleFilter(cat);
                 document.getElementById('feed-engine').innerHTML = '';
-                this.loadNext();
-                this.loadNext();
+                this.loadNext(); this.loadNext();
             },
-
+            
             resetFilters() {
-                AppStore.resetFilters();
-                UISystem.renderSidebar();
+                Store.state.activeFilters = []; Store.save();
+                UI.renderSidebar();
                 document.getElementById('feed-engine').innerHTML = '';
-                this.loadNext();
-                this.loadNext();
-                UISystem.toast("Filtros eliminados");
+                this.loadNext(); this.loadNext();
             },
 
-            reloadDB() {
-                location.reload();
-            },
-
-            hardReset() {
-                if(confirm("¿Estás seguro? Se borrará todo tu historial de aprendizaje.")) {
-                    localStorage.removeItem(AppStore.key);
-                    location.reload();
-                }
-            }
+            reloadDB() { location.reload(); },
+            hardReset() { localStorage.removeItem(Store.key); location.reload(); }
         };
 
-        // INICIAR SISTEMA
-        window.addEventListener('DOMContentLoaded', () => App.init());
+        window.onload = () => App.init();
 
     </script>
 </body>
