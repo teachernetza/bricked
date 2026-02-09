@@ -3,47 +3,71 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <meta name="description" content="Essence - Scroll infinito de conocimiento">
-    <meta name="theme-color" content="#000000">
-    <title>Essence | Knowledge OS</title>
+    <meta name="description" content="Bricked - Knowledge Construction OS">
+    <meta name="theme-color" content="#050505">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <title>BRICKED | OS</title>
 
     <script src="https://cdn.tailwindcss.com"></script>
+    
     <script src="https://unpkg.com/lucide@latest"></script>
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.0/papaparse.min.js"></script>
+
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&family=Manrope:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800;900&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
 
     <script>
+        /**
+         * 🚨 ZONA DE CONFIGURACIÓN DEL USUARIO 🚨
+         * Pega aquí el link que obtuviste en: Archivo > Compartir > Publicar en la web > CSV
+         */
+        const GOOGLE_SHEET_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRH7tvjL9usAdbPX9T4hVaPjbk0eykei7sghqShiMzUMvUtpH80BEniasmAWBlgtjH4UjVy5dJBT-So/pub?output=csv"; 
+        
+        // Configuración de Tailwind para el Design System "Bricked"
         tailwind.config = {
             darkMode: 'class',
             theme: {
                 extend: {
                     fontFamily: {
-                        serif: ['"Libre Baskerville"', 'serif'],
-                        sans: ['"Manrope"', 'sans-serif'],
+                        sans: ['Inter', 'sans-serif'],
+                        mono: ['JetBrains Mono', 'monospace'],
                     },
                     colors: {
-                        // Paleta "Dark Academia"
-                        bg: '#050505',
-                        surface: '#121212',
-                        surfaceHigh: '#1E1E1E',
-                        primary: '#3B82F6', // Azul eléctrico suave
-                        accent: '#F43F5E', // Rosa coral para likes
-                        textMain: '#EAEAEA',
-                        textMuted: '#A3A3A3',
-                        border: '#262626'
+                        // Paleta Industrial
+                        bg: '#050505',          // Negro Profundo
+                        surface: '#0F0F0F',     // Gris Asfalto
+                        surfaceLight: '#1A1A1A',// Gris Concreto
+                        border: '#262626',      // Borde Sutil
+                        
+                        // Acentos
+                        brick: '#E63946',       // Rojo Ladrillo (Primary)
+                        brickDark: '#9D0208',   // Rojo Sangre (Hover)
+                        alert: '#F4A261',       // Naranja Industrial
+                        
+                        // Texto
+                        txtMain: '#EDEDED',
+                        txtMuted: '#8D8D8D',
                     },
                     height: {
-                        'screen-dvh': '100dvh', // Altura dinámica real en móviles
+                        'screen-dvh': '100dvh', // Altura real en móviles
                     },
                     animation: {
-                        'fade-in': 'fadeIn 0.7s cubic-bezier(0.16, 1, 0.3, 1) forwards',
-                        'slide-up': 'slideUp 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards',
-                        'pulse-slow': 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+                        'pulse-slow': 'pulse 4s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+                        'slide-up': 'slideUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards',
+                        'fade-in': 'fadeIn 0.5s ease-out forwards',
                     },
                     keyframes: {
-                        fadeIn: { '0%': { opacity: '0' }, '100%': { opacity: '1' } },
-                        slideUp: { '0%': { transform: 'translateY(20px)', opacity: '0' }, '100%': { transform: 'translateY(0)', opacity: '1' } }
+                        slideUp: {
+                            '0%': { transform: 'translateY(40px)', opacity: '0' },
+                            '100%': { transform: 'translateY(0)', opacity: '1' },
+                        },
+                        fadeIn: {
+                            '0%': { opacity: '0' },
+                            '100%': { opacity: '1' },
+                        }
                     }
                 }
             }
@@ -52,660 +76,660 @@
 
     <style>
         /* Reset y Base */
-        * { -webkit-tap-highlight-color: transparent; }
-        html { height: 100%; overflow: hidden; }
-        body { 
-            height: 100%; 
-            overflow: hidden; 
-            background-color: #050505; 
-            color: #EAEAEA;
-            /* Prevención de rebote en iOS */
-            overscroll-behavior-y: none;
+        :root {
+            --safe-top: env(safe-area-inset-top, 20px);
+            --safe-bottom: env(safe-area-inset-bottom, 20px);
         }
 
-        /* Contenedor Maestro del Scroll (SNAP) */
-        #feed-master {
-            height: 100dvh; /* Dynamic Viewport Height: Clave para Safari iOS */
+        body { 
+            background-color: #050505; 
+            color: #EDEDED; 
+            overflow: hidden; /* El body no scrollea, solo el contenedor */
+            overscroll-behavior-y: none; /* Evita el rebote en iOS */
+            -webkit-font-smoothing: antialiased;
+        }
+
+        /* Ocultar Scrollbars pero mantener funcionalidad */
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+        /* --- MOTOR DE SCROLL (SNAP) --- */
+        #feed-engine {
+            height: 100dvh;
             width: 100vw;
             overflow-y: scroll;
             scroll-snap-type: y mandatory;
             scroll-behavior: smooth;
-            scrollbar-width: none; /* Firefox */
+            position: relative;
+            z-index: 10;
         }
-        #feed-master::-webkit-scrollbar { display: none; /* Chrome/Safari */ }
 
-        /* Tarjeta Individual */
-        .knowledge-card {
+        .brick-card {
             scroll-snap-align: start;
             scroll-snap-stop: always;
             height: 100dvh;
-            width: 100%;
+            width: 100vw;
             position: relative;
             overflow: hidden;
             display: flex;
             flex-direction: column;
-            /* Fondo base por si no carga imagen */
-            background: radial-gradient(circle at center, #1a1a1a 0%, #000000 100%);
+            background-color: #050505;
         }
 
-        /* Glassmorphism Real */
-        .glass {
-            background: rgba(20, 20, 20, 0.65);
-            backdrop-filter: blur(12px);
-            -webkit-backdrop-filter: blur(12px);
-            border: 1px solid rgba(255, 255, 255, 0.08);
+        /* --- TEXTURAS & EFECTOS --- */
+        
+        /* Efecto de Ruido (Noise) para textura de "Concreto" */
+        .bg-noise {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            pointer-events: none;
+            z-index: 5;
+            opacity: 0.03;
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
         }
 
-        /* Gradientes de Legibilidad de Texto */
-        .text-overlay-gradient {
-            background: linear-gradient(
-                to top,
-                rgba(0,0,0,1) 0%,
-                rgba(0,0,0,0.8) 40%,
-                rgba(0,0,0,0.4) 70%,
-                rgba(0,0,0,0) 100%
-            );
+        /* Sombra de Texto Industrial */
+        .text-glow {
+            text-shadow: 0 0 20px rgba(0,0,0,0.8);
+        }
+        
+        /* Glassmorphism Industrial */
+        .glass-panel {
+            background: rgba(15, 15, 15, 0.90);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border-left: 1px solid rgba(255, 255, 255, 0.05);
         }
 
-        /* Utilidad para limitar líneas de texto */
-        .clamp-text {
-            display: -webkit-box;
-            -webkit-line-clamp: 10; /* Máximo líneas antes de cortar */
-            -webkit-box-orient: vertical;
-            overflow: hidden;
-        }
-        @media (max-height: 700px) {
-            .clamp-text { -webkit-line-clamp: 6; }
+        /* Líneas de conexión decorativas */
+        .connection-line {
+            position: absolute;
+            background: rgba(255, 255, 255, 0.1);
+            z-index: 1;
         }
 
-        /* Animación de carga (Skeleton) */
+        /* Skeleton Loading */
         .skeleton {
-            background: linear-gradient(90deg, #1f1f1f 25%, #2a2a2a 50%, #1f1f1f 75%);
+            background: linear-gradient(90deg, #111 25%, #222 50%, #111 75%);
             background-size: 200% 100%;
             animation: loading 1.5s infinite;
         }
         @keyframes loading { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
 
-        /* Safe Areas para iPhone X+ */
-        .safe-pb { padding-bottom: env(safe-area-inset-bottom, 20px); }
-        .safe-pt { padding-top: env(safe-area-inset-top, 20px); }
     </style>
 </head>
-<body class="antialiased">
+<body class="antialiased selection:bg-brick selection:text-white">
 
-    <div id="onboarding-screen" class="fixed inset-0 z-50 bg-bg flex flex-col transition-transform duration-700">
-        <div class="safe-pt px-6 pt-10 pb-4 bg-gradient-to-b from-bg to-transparent z-10">
-            <h1 class="text-4xl font-serif font-bold text-white tracking-tight mb-2">Essence.</h1>
-            <p class="text-textMuted text-sm font-medium">Curaduría de conocimiento inteligente.</p>
+    <div class="bg-noise"></div>
+
+    <div id="app-layer-onboarding" class="fixed inset-0 z-50 bg-bg flex flex-col transition-transform duration-700 ease-in-out">
+        
+        <div class="pt-[var(--safe-top)] px-6 mt-6 mb-4 z-10">
+            <div class="flex items-center gap-2 mb-2">
+                <div class="w-3 h-3 bg-brick"></div>
+                <span class="text-[10px] font-mono tracking-[0.2em] text-brick uppercase">System Boot</span>
+            </div>
+            <h1 class="text-5xl font-black text-white tracking-tighter mb-2">BRICKED<span class="text-brick">.</span></h1>
+            <p class="text-txtMuted font-mono text-xs max-w-[250px]">Construye tu conocimiento, un bloque a la vez.</p>
         </div>
 
         <div class="flex-1 overflow-y-auto px-6 pb-32 no-scrollbar">
-            <div class="flex justify-between items-center mb-6">
-                <span class="text-xs font-bold text-primary uppercase tracking-widest">Elige 3 intereses</span>
-                <span id="topic-counter" class="text-xs text-textMuted font-mono">0/3</span>
+            <div class="flex justify-between items-end mb-6 border-b border-border pb-2">
+                <span class="text-xs font-bold text-white uppercase tracking-widest">Protocolo de Inicio</span>
+                <span id="counter-interests" class="text-xs font-mono text-brick">0/3</span>
             </div>
             
-            <div id="topics-grid" class="grid grid-cols-2 gap-3">
-                </div>
+            <div id="grid-interests" class="grid grid-cols-2 gap-3"></div>
         </div>
 
-        <div class="absolute bottom-0 left-0 w-full p-6 bg-gradient-to-t from-bg via-bg to-transparent safe-pb z-20">
+        <div class="absolute bottom-0 left-0 w-full p-6 pb-[calc(var(--safe-bottom)+1rem)] bg-gradient-to-t from-bg via-bg to-transparent z-20">
             <button id="btn-start" onclick="App.completeOnboarding()" disabled 
-                class="w-full h-14 rounded-2xl bg-white text-black font-bold text-lg disabled:opacity-30 disabled:cursor-not-allowed transform active:scale-95 transition-all shadow-[0_0_20px_rgba(255,255,255,0.1)] flex items-center justify-center gap-3">
-                <span>Comenzar Experiencia</span>
-                <i data-lucide="arrow-right" class="w-5 h-5"></i>
+                class="group w-full h-14 bg-white text-black font-bold text-sm font-mono uppercase tracking-widest disabled:opacity-20 disabled:cursor-not-allowed transition-all active:scale-[0.98] flex items-center justify-center gap-3">
+                <span>Inicializar Feed</span>
+                <i data-lucide="arrow-right" class="w-4 h-4 group-hover:translate-x-1 transition-transform"></i>
             </button>
         </div>
     </div>
 
-    <nav class="fixed top-0 left-0 w-full z-40 px-5 pt-4 safe-pt flex justify-between items-start pointer-events-none">
-        <div class="pointer-events-auto glass px-4 py-2 rounded-full flex items-center gap-2 animate-fade-in">
-            <div class="w-2 h-2 rounded-full bg-primary animate-pulse"></div>
-            <span class="text-xs font-bold tracking-widest text-white/90">LIVE</span>
+    <nav class="fixed top-0 left-0 w-full z-40 px-5 pt-[var(--safe-top)] mt-4 flex justify-between items-start pointer-events-none mix-blend-difference">
+        <div class="pointer-events-auto border border-white/20 bg-black/20 backdrop-blur px-3 py-1 flex items-center gap-2">
+            <div class="w-1.5 h-1.5 rounded-full bg-brick animate-pulse"></div>
+            <span class="text-[10px] font-mono font-bold text-white tracking-widest">LIVE v1.0</span>
         </div>
 
-        <button onclick="window.Sidebar.toggle()" class="pointer-events-auto p-3 rounded-full glass text-white hover:bg-white/10 active:scale-90 transition-all shadow-lg">
-            <i data-lucide="menu" class="w-6 h-6"></i>
+        <button onclick="Sidebar.toggle()" class="pointer-events-auto p-3 border border-white/20 bg-black/20 backdrop-blur text-white hover:bg-white/10 active:scale-90 transition-all group">
+            <i data-lucide="menu" class="w-6 h-6 group-hover:rotate-90 transition-transform duration-300"></i>
         </button>
     </nav>
 
-    <main id="feed-master">
-        <div id="initial-loader" class="h-screen w-full flex flex-col items-center justify-center gap-4">
-            <div class="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin"></div>
-            <p class="text-xs text-textMuted uppercase tracking-widest animate-pulse">Calibrando fuentes...</p>
+    <main id="feed-engine">
+        <div id="loader-initial" class="h-screen w-full flex flex-col items-center justify-center bg-bg relative">
+            <div class="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')] opacity-20"></div>
+            <div class="flex flex-col items-center gap-6 z-10">
+                <div class="w-16 h-16 border-4 border-brick border-t-transparent animate-spin rounded-none"></div>
+                <div class="flex flex-col items-center gap-1">
+                    <p class="text-xs font-mono text-brick uppercase tracking-widest animate-pulse">Cargando Módulos</p>
+                    <p class="text-[10px] text-txtMuted font-mono">Sincronizando Sheets...</p>
+                </div>
+            </div>
         </div>
     </main>
 
-    <div id="infinite-loader" class="fixed bottom-8 left-1/2 -translate-x-1/2 z-30 opacity-0 transition-opacity pointer-events-none safe-pb">
-        <div class="flex gap-2">
-            <div class="w-2 h-2 bg-primary rounded-full animate-bounce" style="animation-delay: 0s"></div>
-            <div class="w-2 h-2 bg-primary rounded-full animate-bounce" style="animation-delay: 0.1s"></div>
-            <div class="w-2 h-2 bg-primary rounded-full animate-bounce" style="animation-delay: 0.2s"></div>
+    <div id="loader-infinite" class="fixed bottom-8 left-1/2 -translate-x-1/2 z-30 opacity-0 transition-opacity pointer-events-none pb-[var(--safe-bottom)]">
+        <div class="flex gap-1">
+            <div class="w-1 h-4 bg-brick animate-[pulse_1s_ease-in-out_infinite]"></div>
+            <div class="w-1 h-4 bg-brick animate-[pulse_1s_ease-in-out_0.2s_infinite]"></div>
+            <div class="w-1 h-4 bg-brick animate-[pulse_1s_ease-in-out_0.4s_infinite]"></div>
         </div>
     </div>
 
-    <div id="toast-container" class="fixed top-24 left-1/2 -translate-x-1/2 z-50 flex flex-col gap-2 w-max max-w-[90vw] pointer-events-none">
-        </div>
+    <div id="toast-zone" class="fixed top-24 left-1/2 -translate-x-1/2 z-50 flex flex-col gap-2 w-max max-w-[90vw] pointer-events-none"></div>
 
-    <div id="sidebar-overlay" onclick="window.Sidebar.toggle()" class="fixed inset-0 z-40 bg-black/80 backdrop-blur-sm hidden opacity-0 transition-opacity duration-300"></div>
+    <div id="sidebar-backdrop" onclick="Sidebar.toggle()" class="fixed inset-0 z-40 bg-black/80 backdrop-blur-sm hidden opacity-0 transition-opacity duration-300"></div>
     
-    <aside id="sidebar-panel" class="fixed inset-y-0 right-0 z-50 w-80 glass transform translate-x-full transition-transform duration-300 flex flex-col bg-[#0a0a0a]">
-        <div class="safe-pt px-6 pt-6 pb-4 border-b border-border flex justify-between items-center">
-            <h2 class="font-serif font-bold text-xl text-white">Biblioteca</h2>
-            <button onclick="window.Sidebar.toggle()" class="p-2 -mr-2 text-textMuted hover:text-white"><i data-lucide="x" class="w-6 h-6"></i></button>
+    <aside id="sidebar-panel" class="fixed inset-y-0 right-0 z-50 w-80 glass-panel transform translate-x-full transition-transform duration-300 flex flex-col bg-[#0a0a0a]">
+        <div class="pt-[var(--safe-top)] mt-6 px-6 pb-6 border-b border-border flex justify-between items-center">
+            <h2 class="font-bold text-xl text-white tracking-tight">Estructura</h2>
+            <button onclick="Sidebar.toggle()" class="text-txtMuted hover:text-white transition"><i data-lucide="x" class="w-6 h-6"></i></button>
         </div>
 
         <div class="flex-1 overflow-y-auto p-6 no-scrollbar">
-            <div class="grid grid-cols-2 gap-3 mb-8">
-                <div class="bg-surfaceHigh p-4 rounded-2xl border border-border text-center">
-                    <span id="stat-views" class="block text-2xl font-bold text-white mb-1">0</span>
-                    <span class="text-[10px] font-bold text-textMuted uppercase tracking-wider">Artículos</span>
-                </div>
-                <div class="bg-surfaceHigh p-4 rounded-2xl border border-border text-center">
-                    <span id="stat-likes" class="block text-2xl font-bold text-accent mb-1">0</span>
-                    <span class="text-[10px] font-bold text-textMuted uppercase tracking-wider">Guardados</span>
+            
+            <div class="mb-8">
+                <h3 class="text-[10px] font-mono text-txtMuted uppercase mb-4 tracking-widest border-l-2 border-brick pl-2">Métricas</h3>
+                <div class="grid grid-cols-2 gap-3">
+                    <div class="bg-surfaceLight p-4 border border-border">
+                        <span id="stat-read" class="block text-3xl font-black text-white mb-1">0</span>
+                        <span class="text-[9px] font-bold text-txtMuted uppercase tracking-wider">Bloques Leídos</span>
+                    </div>
+                    <div class="bg-surfaceLight p-4 border border-border">
+                        <span id="stat-saved" class="block text-3xl font-black text-brick mb-1">0</span>
+                        <span class="text-[9px] font-bold text-txtMuted uppercase tracking-wider">Favoritos</span>
+                    </div>
                 </div>
             </div>
 
             <div class="mb-8">
-                <h3 class="text-xs font-bold text-textMuted uppercase mb-4 tracking-widest">Tus Filtros Activos</h3>
-                <div id="active-topics-list" class="flex flex-wrap gap-2">
+                <h3 class="text-[10px] font-mono text-txtMuted uppercase mb-4 tracking-widest border-l-2 border-white pl-2">Filtros Activos</h3>
+                <div id="list-active-filters" class="flex flex-wrap gap-2">
                     </div>
             </div>
 
-            <div class="mt-auto">
-                <button onclick="App.hardReset()" class="w-full py-3 rounded-xl border border-red-900/50 text-red-400 text-sm font-medium hover:bg-red-900/10 transition flex items-center justify-center gap-2">
-                    <i data-lucide="trash" class="w-4 h-4"></i>
-                    Reiniciar Aplicación
+            <div class="mt-auto space-y-3">
+                <button onclick="App.refreshData()" class="w-full py-3 bg-white/5 border border-white/10 text-white text-xs font-mono uppercase hover:bg-white/10 transition flex items-center justify-center gap-2">
+                    <i data-lucide="refresh-cw" class="w-3 h-3"></i> Recargar Sheets
                 </button>
-                <p class="text-center text-[10px] text-zinc-700 mt-4">v3.0.0 • Essence Engine</p>
+                
+                <button onclick="App.hardReset()" class="w-full py-3 border border-brick/30 text-brick text-xs font-mono uppercase hover:bg-brick/10 transition flex items-center justify-center gap-2">
+                    <i data-lucide="trash-2" class="w-3 h-3"></i> Formatear Sistema
+                </button>
+            </div>
+            
+            <div class="mt-8 text-center">
+                <p class="text-[9px] font-mono text-txtMuted">BRICKED OS v1.0.4<br>System Operational</p>
             </div>
         </div>
     </aside>
 
     <script>
+        
         /**
-         * MÓDULO 1: UTILIDADES (Helpers)
+         * MÓDULO 1: UTILIDADES & HELPERS
+         * Funciones auxiliares para el funcionamiento general.
          */
         const Utils = {
-            random: (arr) => arr[Math.floor(Math.random() * arr.length)],
-            shuffle: (arr) => arr.sort(() => Math.random() - 0.5),
+            // Genera una espera asíncrona
             wait: (ms) => new Promise(r => setTimeout(r, ms)),
-            truncate: (str, n) => str.length > n ? str.substr(0, n-1) + "..." : str,
             
-            // Web Share API Wrapper
-            share: async (data) => {
-                if (navigator.share) {
-                    try { await navigator.share(data); return true; } 
-                    catch (err) { return false; }
-                } else {
-                    // Fallback: Copiar al portapapeles
-                    navigator.clipboard.writeText(data.url);
-                    UI.toast("Enlace copiado al portapapeles");
-                    return true;
+            // Mezcla un array (Algoritmo Fisher-Yates)
+            shuffle: (array) => {
+                for (let i = array.length - 1; i > 0; i--) {
+                    const j = Math.floor(Math.random() * (i + 1));
+                    [array[i], array[j]] = [array[j], array[i]];
                 }
+                return array;
             },
 
-            // TTS (Text to Speech)
-            speak: (text, btnElement) => {
-                if (window.speechSynthesis.speaking) {
-                    window.speechSynthesis.cancel();
-                    btnElement.classList.remove('text-primary', 'bg-primary/10');
-                    return;
-                }
-                const utterance = new SpeechSynthesisUtterance(text);
-                utterance.lang = 'es-ES';
-                utterance.rate = 1.0;
-                utterance.pitch = 1.0;
+            // Vibración háptica segura
+            vibrate: (pattern = 10) => {
+                if (navigator.vibrate) navigator.vibrate(pattern);
+            },
+
+            // Sistema de Notificaciones Toast
+            toast: (msg, type = 'normal') => {
+                const el = document.createElement('div');
+                const color = type === 'error' ? 'text-brick border-brick' : 'text-white border-white/20';
+                el.className = `bg-black/80 backdrop-blur px-4 py-3 border ${color} text-xs font-mono font-bold uppercase tracking-wide shadow-2xl animate-fade-in flex items-center gap-3`;
                 
-                utterance.onstart = () => btnElement.classList.add('text-primary', 'bg-primary/10');
-                utterance.onend = () => btnElement.classList.remove('text-primary', 'bg-primary/10');
+                el.innerHTML = `
+                    <div class="w-2 h-2 bg-${type === 'error' ? 'brick' : 'white'} animate-pulse"></div>
+                    ${msg}
+                `;
                 
-                window.speechSynthesis.speak(utterance);
+                const container = document.getElementById('toast-zone');
+                container.appendChild(el);
+                setTimeout(() => {
+                    el.style.opacity = '0';
+                    setTimeout(() => el.remove(), 500);
+                }, 3000);
             }
         };
 
         /**
-         * MÓDULO 2: GESTOR DE ESTADO (Local Storage)
+         * MÓDULO 2: DATOS DE RESPALDO (MOCK DATA)
+         * Se usa si no hay link de Sheets o si falla la carga.
+         * Cumple con el requisito de tener datos de ejemplo robustos.
+         */
+        const MOCK_DB = [
+            { Categoria: "Tecnología", Titulo: "La Paradoja de Moravec", Resumen: "Es fácil conseguir que las computadoras muestren capacidades similares a las de un adulto en test de inteligencia, pero difícil que tengan las habilidades perceptivas y motrices de un niño de un año.", Fuente: "AI Magazine", Link: "#", ImagenKeyword: "Robot Hand" },
+            { Categoria: "Física", Titulo: "Entrelazamiento Cuántico", Resumen: "Un fenómeno donde dos partículas quedan ligadas y comparten el mismo estado físico, sin importar la distancia que las separe, incluso a años luz. Einstein lo llamó 'acción fantasmal a distancia'.", Fuente: "Nature Physics", Link: "#", ImagenKeyword: "Quantum Particles" },
+            { Categoria: "Psicología", Titulo: "Efecto Zeigarnik", Resumen: "El cerebro tiende a recordar mejor las tareas incompletas o interrumpidas que las que se han completado. Por eso los 'cliffhangers' en las series funcionan tan bien.", Fuente: "Psychology Today", Link: "#", ImagenKeyword: "Brain Synapse" },
+            { Categoria: "Historia", Titulo: "El Manuscrito Voynich", Resumen: "Un libro ilustrado de contenidos desconocidos, escrito hace unos 500 años por un autor anónimo en un alfabeto no identificado y un idioma incomprensible. Nunca ha sido descifrado.", Fuente: "Yale Library", Link: "#", ImagenKeyword: "Old Book Mystery" },
+            { Categoria: "Biología", Titulo: "Inmortalidad Biológica", Resumen: "La medusa Turritopsis dohrnii es biológicamente inmortal. Puede revertir su ciclo de vida desde la etapa adulta a la inmadurez de pólipo repetidamente.", Fuente: "National Geo", Link: "#", ImagenKeyword: "Jellyfish Deep Sea" },
+            { Categoria: "Economía", Titulo: "Cisne Negro", Resumen: "Teoría de Nassim Taleb que describe sucesos sorpresivos, de gran impacto socioeconómico y que, una vez pasados, se racionalizan por retrospección haciendo que parezcan predecibles.", Fuente: "Investopedia", Link: "#", ImagenKeyword: "Black Swan Abstract" },
+            { Categoria: "Filosofía", Titulo: "El Basilisco de Roko", Resumen: "Un experimento mental que plantea que una futura superinteligencia artificial podría castigar retroactivamente a todos los que no ayudaron a crearla.", Fuente: "LessWrong", Link: "#", ImagenKeyword: "Evil AI Red" },
+            { Categoria: "Arte", Titulo: "Vantablack", Resumen: "Una sustancia hecha de nanotubos de carbono que es una de las sustancias más oscuras conocidas, absorbiendo hasta el 99.965% de la radiación de luz visible.", Fuente: "Surrealism Art", Link: "#", ImagenKeyword: "Black Hole Texture" },
+            { Categoria: "Astronomía", Titulo: "La Gran Muralla Sloan", Resumen: "Una de las estructuras más grandes conocidas en el universo. Es una pared gigante de galaxias que mide 1.37 mil millones de años luz de largo.", Fuente: "NASA Hubblesite", Link: "#", ImagenKeyword: "Galaxy Cluster" },
+            { Categoria: "Derecho", Titulo: "Nulla Poena Sine Lege", Resumen: "Principio fundamental: 'No hay pena sin ley'. Nadie puede ser castigado por algo que no estaba prohibido por la ley en el momento en que se cometió.", Fuente: "Legal Dictionary", Link: "#", ImagenKeyword: "Gavel Courtroom" }
+        ];
+
+        /**
+         * MÓDULO 3: GESTIÓN DE ESTADO (LOCALSTORAGE)
+         * Persistencia de datos del usuario.
          */
         const Store = {
-            key: 'essence_v3_db',
-            state: {
+            key: 'bricked_os_v1',
+            data: {
                 onboarding: false,
                 interests: [],
-                history: [], // IDs vistos
-                likes: [],   // Objetos guardados
+                viewed: [], // IDs (Títulos) vistos para no repetir
+                likes: []   // IDs (Títulos) guardados
             },
 
             init() {
                 const saved = localStorage.getItem(this.key);
-                if (saved) this.state = JSON.parse(saved);
+                if (saved) {
+                    this.data = JSON.parse(saved);
+                }
             },
 
             save() {
-                localStorage.setItem(this.key, JSON.stringify(this.state));
-                Sidebar.updateUI(); // Actualizar sidebar al guardar
+                localStorage.setItem(this.key, JSON.stringify(this.data));
+                Sidebar.updateUI();
             },
 
-            toggleLike(cardData) {
-                const idx = this.state.likes.findIndex(l => l.id === cardData.id);
-                if (idx > -1) {
-                    this.state.likes.splice(idx, 1);
+            markViewed(id) {
+                if (!this.data.viewed.includes(id)) {
+                    this.data.viewed.push(id);
+                    // Límite de historia para no saturar memoria (300 items)
+                    if (this.data.viewed.length > 300) this.data.viewed.shift();
+                    this.save();
+                }
+            },
+
+            toggleLike(id) {
+                if (this.data.likes.includes(id)) {
+                    this.data.likes = this.data.likes.filter(item => item !== id);
                     this.save();
                     return false;
                 } else {
-                    this.state.likes.push(cardData);
+                    this.data.likes.push(id);
                     this.save();
                     return true;
                 }
             },
 
-            addHistory(id) {
-                if (!this.state.history.includes(id)) {
-                    this.state.history.push(id);
-                    if (this.state.history.length > 200) this.state.history.shift(); // Limite
-                    this.save();
-                }
+            reset() {
+                localStorage.removeItem(this.key);
+                location.reload();
             }
         };
 
         /**
-         * MÓDULO 3: MOTOR DE APIS (El cerebro)
+         * MÓDULO 4: MOTOR DE CONTENIDO
+         * Lógica de filtrado y fallback.
          */
-        const APIManager = {
-            // Fuentes de datos configurables
-            sources: {
-                WIKI: 'https://es.wikipedia.org/w/api.php',
-                ART: 'https://api.artic.edu/api/v1/artworks/search',
-                BOOKS: 'https://openlibrary.org/search.json',
-                GEO: 'https://restcountries.com/v3.1/all' // Cachear esto sería ideal
+        const ContentEngine = {
+            db: [], // Base de datos cruda
+            
+            async load() {
+                return new Promise(resolve => {
+                    // Si no hay URL, usar Mock Data
+                    if (!GOOGLE_SHEET_CSV_URL || GOOGLE_SHEET_CSV_URL.length < 5) {
+                        console.warn("Bricked: Usando Base de Datos Local (Modo Demo)");
+                        this.db = MOCK_DB;
+                        resolve();
+                        return;
+                    }
+
+                    Papa.parse(GOOGLE_SHEET_CSV_URL, {
+                        download: true,
+                        header: true,
+                        skipEmptyLines: true,
+                        complete: (results) => {
+                            if (results.data && results.data.length > 0) {
+                                // Limpieza básica de datos
+                                this.db = results.data.filter(row => row.Titulo && row.Categoria);
+                                console.log(`Bricked: ${this.db.length} bloques cargados desde Sheets.`);
+                            } else {
+                                this.db = MOCK_DB;
+                            }
+                            resolve();
+                        },
+                        error: (err) => {
+                            console.error("Error CSV:", err);
+                            this.db = MOCK_DB;
+                            Utils.toast("Error de conexión. Modo Offline.", "error");
+                            resolve();
+                        }
+                    });
+                });
             },
 
-            // Estrategia de búsqueda
-            async fetchNext(topics) {
-                const topic = Utils.random(topics);
-                const strategy = Math.random();
+            /**
+             * ALGORITMO DE SELECCIÓN INTELIGENTE (FALLBACK LOGIC)
+             * 1. Prioridad: Intereses del usuario && No visto.
+             * 2. Fallback 1: Cualquier categoría && No visto (Descubrimiento).
+             * 3. Fallback 2: Intereses del usuario (Aunque ya visto - Repaso).
+             * 4. Fallback 3: Cualquier cosa (Loop infinito).
+             */
+            getNextBlock() {
+                const interests = Store.data.interests;
+                const viewed = Store.data.viewed;
 
-                try {
-                    // 15% Arte, 20% Libros, 15% Geo, 50% Wikipedia
-                    if (strategy < 0.15) return await this.getArt(topic);
-                    if (strategy < 0.35) return await this.getBook(topic);
-                    if (strategy < 0.50) return await this.getGeo(); // Geo suele ser random
-                    return await this.getWiki(topic);
-                } catch (e) {
-                    console.warn("API Error, fallback to Wiki", e);
-                    return await this.getWiki(topic);
+                // Nivel 1: Intereses + Nuevo
+                let pool = this.db.filter(item => interests.includes(item.Categoria) && !viewed.includes(item.Titulo));
+
+                // Nivel 2: Descubrimiento (Algo nuevo de otras categorías)
+                if (pool.length === 0) {
+                    pool = this.db.filter(item => !viewed.includes(item.Titulo));
                 }
-            },
 
-            // --- FETCHERS ESPECÍFICOS ---
+                // Nivel 3: Repaso (Reset parcial implícito)
+                if (pool.length === 0) {
+                    pool = this.db.filter(item => interests.includes(item.Categoria));
+                }
 
-            async getWiki(query) {
-                const url = `${this.sources.WIKI}?action=query&format=json&list=search&srsearch=${query}&origin=*&srlimit=5`;
-                const res = await fetch(url).then(r => r.json());
-                if (!res.query?.search.length) throw new Error("No Wiki results");
+                // Nivel 4: Loop Total
+                if (pool.length === 0) {
+                    pool = this.db;
+                }
 
-                // Filtrar duplicados
-                const available = res.query.search.filter(i => !Store.state.history.includes('wiki_'+i.pageid));
-                const item = available.length ? Utils.random(available) : res.query.search[0];
-
-                // Obtener detalles (Imagen + Extracto)
-                const detailUrl = `https://es.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(item.title)}`;
-                const detail = await fetch(detailUrl).then(r => r.json());
-
-                return {
-                    id: 'wiki_' + item.pageid,
-                    type: 'knowledge',
-                    source: 'Wikipedia',
-                    category: query,
-                    title: detail.title,
-                    text: detail.extract,
-                    image: detail.thumbnail?.source || null,
-                    url: detail.content_urls?.desktop?.page || '#'
-                };
-            },
-
-            async getArt(query) {
-                // El arte es visual, buscamos términos generales si el query es muy específico
-                const q = ['Arte', 'Pintura', 'Retrato', 'Paisaje'].includes(query) ? query : 'Painting'; 
-                const url = `${this.sources.ART}?q=${q}&limit=20&fields=id,title,artist_display,image_id,description`;
-                const res = await fetch(url).then(r => r.json());
-                
-                const valid = res.data.filter(i => i.image_id && !Store.state.history.includes('art_'+i.id));
-                if (!valid.length) throw new Error("No Art results");
-                const item = Utils.random(valid);
-
-                return {
-                    id: 'art_' + item.id,
-                    type: 'art',
-                    source: 'Art Institute Chicago',
-                    category: 'Arte Clásico',
-                    title: item.title,
-                    text: item.description ? item.description.replace(/<[^>]*>?/gm, '') : `Una obra maestra creada por ${item.artist_display}. Observa los detalles de la técnica y la composición.`,
-                    image: `https://www.artic.edu/iiif/2/${item.image_id}/full/843,/0/default.jpg`,
-                    url: `https://www.artic.edu/artworks/${item.id}`
-                };
-            },
-
-            async getBook(query) {
-                const url = `${this.sources.BOOKS}?q=${query}&language=spa&limit=10&fields=key,title,author_name,first_sentence,cover_i`;
-                const res = await fetch(url).then(r => r.json());
-                
-                const valid = res.docs.filter(i => i.cover_i && !Store.state.history.includes(i.key));
-                if (!valid.length) throw new Error("No Book results");
-                const item = Utils.random(valid);
-
-                const text = item.first_sentence 
-                    ? (Array.isArray(item.first_sentence) ? item.first_sentence[0] : item.first_sentence)
-                    : `Obra literaria destacada de ${item.author_name?.[0] || 'Autor desconocido'}. Un libro esencial para entender el tema ${query}.`;
-
-                return {
-                    id: item.key,
-                    type: 'book',
-                    source: 'Open Library',
-                    category: 'Literatura',
-                    title: item.title,
-                    text: `"${text}"`,
-                    image: `https://covers.openlibrary.org/b/id/${item.cover_i}-L.jpg`,
-                    url: `https://openlibrary.org${item.key}`
-                };
-            },
-
-            async getGeo() {
-                // Cachear esto en memoria sería mejor, pero hacemos fetch
-                const res = await fetch('https://restcountries.com/v3.1/region/americas').then(r => r.json());
-                const item = Utils.random(res);
-                
-                return {
-                    id: 'geo_' + item.cca3,
-                    type: 'geo',
-                    source: 'Datos Mundiales',
-                    category: 'Geografía',
-                    title: item.translations.spa.common,
-                    text: `Capital: ${item.capital?.[0]}. Población: ${item.population.toLocaleString()}. Se encuentra en la subregión de ${item.subregion}. Su bandera tiene colores distintivos de su historia.`,
-                    image: item.flags.svg, // Bandera como imagen
-                    url: item.maps.googleMaps
-                };
+                // Selección aleatoria del pool resultante
+                const selected = pool[Math.floor(Math.random() * pool.length)];
+                return selected;
             }
         };
 
         /**
-         * MÓDULO 4: RENDERIZADO DE UI (DOM Manipulation)
+         * MÓDULO 5: RENDERIZADO DE UI
+         * Manipulación del DOM.
          */
         const UI = {
-            container: document.getElementById('feed-master'),
-            
-            toast(msg) {
-                const el = document.createElement('div');
-                el.className = "bg-white/10 backdrop-blur text-white px-4 py-2 rounded-lg text-xs font-bold shadow-xl animate-fade-in border border-white/10";
-                el.innerText = msg;
-                document.getElementById('toast-container').appendChild(el);
-                setTimeout(() => el.remove(), 3000);
-            },
+            container: document.getElementById('feed-engine'),
+            observer: null,
 
+            // Crea la tarjeta HTML
             createCard(data) {
                 const el = document.createElement('article');
-                el.className = 'knowledge-card';
-                el.dataset.id = data.id;
+                el.className = 'brick-card bg-bg border-b border-border/20';
+                
+                // Generar URL de Imagen (Pollinations AI)
+                const keyword = data.ImagenKeyword || "Abstract geometric dark";
+                const imgUrl = `https://image.pollinations.ai/prompt/${encodeURIComponent(keyword)}%20dark%20moody%20minimalist%20industrial%20wallpaper?width=720&height=1280&nologo=true&seed=${Math.random()}`;
 
-                // Lógica de Imagen de Fondo
-                let bgHTML = '';
-                if (data.image) {
-                    // Si es bandera (geo) o libro, usamos 'contain' o blur, si es arte 'cover'
-                    const isArt = data.type === 'art';
-                    const isGeo = data.type === 'geo';
-                    
-                    bgHTML = `
-                        <div class="absolute inset-0 z-0 select-none">
-                            <img src="${data.image}" 
-                                 class="w-full h-full object-cover transition-transform duration-[20s] ease-linear scale-100" 
-                                 onload="this.classList.add('scale-110')"
-                                 style="${isGeo ? 'object-fit: cover; opacity: 0.4; filter: blur(10px);' : 'opacity: 0.6;'}"
-                            />
-                            <div class="absolute inset-0 bg-gradient-to-t from-bg via-bg/90 to-bg/30"></div>
-                            <div class="absolute inset-0 bg-black/20"></div>
-                        </div>
-                    `;
-                }
+                const isLiked = Store.data.likes.includes(data.Titulo);
 
                 el.innerHTML = `
-                    ${bgHTML}
-                    
-                    <div class="relative z-10 flex flex-col h-full w-full max-w-lg mx-auto p-6 safe-pt safe-pb">
+                    <div class="absolute inset-0 z-0 bg-surface">
+                        <img src="${imgUrl}" 
+                             loading="lazy"
+                             class="w-full h-full object-cover opacity-50 blur-[2px] scale-105 transition-transform duration-[10s] hover:scale-110 ease-linear" 
+                             onload="this.style.opacity='0.4'">
+                        <div class="absolute inset-0 bg-gradient-to-t from-bg via-bg/90 to-transparent"></div>
+                        <div class="absolute inset-0 bg-gradient-to-b from-bg/60 to-transparent"></div>
                         
-                        <div class="mt-16 flex items-center justify-between opacity-0 animate-slide-up" style="animation-delay: 0.1s">
-                            <span class="px-3 py-1 rounded-full border border-white/10 text-[10px] font-bold uppercase tracking-widest bg-black/40 backdrop-blur text-primary">
-                                ${data.category}
-                            </span>
-                            <div class="flex items-center gap-2 text-[10px] text-textMuted font-medium uppercase tracking-wide bg-black/40 px-2 py-1 rounded-lg backdrop-blur">
-                                <span>${data.source}</span>
+                        <div class="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/diagmonds-light.png')] opacity-10 mix-blend-overlay"></div>
+                    </div>
+
+                    <div class="relative z-10 flex flex-col h-full w-full p-6 pt-24 pb-[calc(var(--safe-bottom)+2rem)]">
+                        
+                        <div class="flex items-center justify-between mb-auto opacity-0 animate-slide-up" style="animation-delay: 100ms">
+                            <div class="flex items-center gap-3">
+                                <span class="bg-brick text-white text-[10px] font-mono font-bold uppercase px-2 py-1 tracking-widest shadow-[0_0_15px_rgba(230,57,70,0.4)]">
+                                    ${data.Categoria}
+                                </span>
+                                <div class="h-px w-8 bg-white/20"></div>
                             </div>
                         </div>
 
-                        <div class="flex-1 flex flex-col justify-center my-6 opacity-0 animate-slide-up" style="animation-delay: 0.2s">
-                            <h2 class="text-3xl md:text-5xl font-serif font-bold leading-[1.1] mb-6 text-white text-shadow-lg">
-                                ${data.title}
+                        <div class="flex flex-col justify-center my-8 opacity-0 animate-slide-up" style="animation-delay: 200ms">
+                            <h2 class="text-3xl md:text-5xl font-black leading-[0.95] mb-6 text-white text-glow uppercase tracking-tight">
+                                ${data.Titulo}
                             </h2>
                             
-                            <div class="relative group">
-                                <div class="w-12 h-1 bg-primary mb-6 rounded-full opacity-50"></div>
-                                <p class="text-lg md:text-xl leading-relaxed text-textMain font-sans font-light opacity-90 clamp-text">
-                                    ${data.text}
+                            <div class="border-l-2 border-brick pl-5 py-1 backdrop-blur-sm bg-black/10">
+                                <p class="text-lg md:text-xl text-gray-200 font-sans font-light leading-relaxed">
+                                    ${data.Resumen}
                                 </p>
                             </div>
                         </div>
 
-                        <div class="mt-auto pt-6 flex items-center justify-between border-t border-white/10 opacity-0 animate-slide-up" style="animation-delay: 0.3s">
+                        <div class="mt-auto border-t border-white/10 pt-6 flex items-end justify-between opacity-0 animate-slide-up" style="animation-delay: 300ms">
                             
-                            <a href="${data.url}" target="_blank" class="flex items-center gap-2 pr-6 py-3 rounded-l-full hover:opacity-80 transition-opacity">
-                                <span class="text-sm font-bold text-white border-b border-primary pb-0.5">Profundizar</span>
-                                <i data-lucide="arrow-up-right" class="w-4 h-4 text-primary"></i>
-                            </a>
+                            <div class="flex flex-col gap-1 max-w-[60%]">
+                                <span class="text-[9px] font-mono text-txtMuted uppercase tracking-widest">Fuente Verificada</span>
+                                <span class="text-xs font-bold text-white truncate">${data.Fuente}</span>
+                            </div>
 
                             <div class="flex gap-3">
-                                <button onclick="Utils.speak(this.dataset.text, this)" data-text="${data.text.replace(/"/g, '&quot;')}" class="p-3 rounded-full bg-white/5 border border-white/10 active:scale-95 transition hover:bg-white/10">
-                                    <i data-lucide="volume-2" class="w-5 h-5 text-textMuted"></i>
-                                </button>
+                                <a href="${data.Link}" target="_blank" class="w-12 h-12 flex items-center justify-center border border-white/10 bg-white/5 hover:bg-white/10 text-white transition active:scale-95 group">
+                                    <i data-lucide="external-link" class="w-5 h-5 group-hover:text-brick transition-colors"></i>
+                                </a>
                                 
-                                <button onclick="Utils.share({title: '${data.title}', text: '${data.title}', url: '${data.url}'})" class="p-3 rounded-full bg-white/5 border border-white/10 active:scale-95 transition hover:bg-white/10">
-                                    <i data-lucide="share-2" class="w-5 h-5 text-textMuted"></i>
-                                </button>
-
-                                <button onclick="App.handleLike(this, '${data.id}')" class="p-3 rounded-full bg-white/5 border border-white/10 active:scale-95 transition hover:bg-white/10 group">
-                                    <i data-lucide="heart" class="w-5 h-5 text-textMuted group-hover:text-accent transition-colors"></i>
+                                <button onclick="App.toggleLike(this, '${data.Titulo}')" class="w-12 h-12 flex items-center justify-center border border-white/10 bg-white/5 hover:bg-white/10 transition active:scale-95 group">
+                                    <i data-lucide="heart" class="w-5 h-5 transition-colors ${isLiked ? 'text-brick fill-brick' : 'text-txtMuted group-hover:text-white'}"></i>
                                 </button>
                             </div>
                         </div>
+                    </div>
+                    
+                    <div class="absolute top-4 right-4 z-0">
+                        <svg width="40" height="40" viewBox="0 0 40 40" class="opacity-20">
+                            <path d="M0 0 H40 V40" fill="none" stroke="white" stroke-width="1"/>
+                        </svg>
                     </div>
                 `;
 
                 this.container.appendChild(el);
                 
-                // Observador para Scroll Infinito y Analytics
+                // Observador para scroll infinito
                 this.observer.observe(el);
                 lucide.createIcons();
             },
 
-            initObserver() {
+            setupInfiniteScroll() {
                 this.observer = new IntersectionObserver((entries) => {
                     entries.forEach(entry => {
                         if (entry.isIntersecting) {
                             const card = entry.target;
-                            Store.addHistory(card.dataset.id);
-                            Sidebar.updateUI(); // Actualizar contador
                             
-                            // Si es la penúltima carta, cargar más
-                            if (card.nextElementSibling === null || card.nextElementSibling.nextElementSibling === null) {
-                                App.loadMore();
+                            // Marcar como visto (Analytics)
+                            const title = card.querySelector('h2').innerText;
+                            Store.markViewed(title);
+                            Sidebar.updateUI();
+
+                            // Lógica de carga: Si es el penúltimo elemento, cargar el siguiente
+                            if (card.nextElementSibling === null) {
+                                App.loadNextBlock();
                             }
                         }
                     });
-                }, { threshold: 0.5 });
+                }, { threshold: 0.5 }); // 50% de visibilidad activa el evento
             }
         };
 
         /**
-         * MÓDULO 5: CONTROLADOR DEL MENÚ (Sidebar)
+         * MÓDULO 6: CONTROLADOR DEL MENÚ (SIDEBAR)
          */
-        window.Sidebar = {
-            el: document.getElementById('sidebar-panel'),
-            overlay: document.getElementById('sidebar-overlay'),
+        const Sidebar = {
+            panel: document.getElementById('sidebar-panel'),
+            backdrop: document.getElementById('sidebar-backdrop'),
             
             toggle() {
-                const isClosed = this.el.classList.contains('translate-x-full');
+                const isClosed = this.panel.classList.contains('translate-x-full');
                 if (isClosed) {
-                    this.overlay.classList.remove('hidden');
-                    // Pequeño delay para permitir transición de opacidad
-                    requestAnimationFrame(() => {
-                        this.overlay.classList.remove('opacity-0');
-                        this.el.classList.remove('translate-x-full');
-                    });
+                    this.panel.classList.remove('translate-x-full');
+                    this.backdrop.classList.remove('hidden');
+                    setTimeout(() => this.backdrop.classList.remove('opacity-0'), 10);
                     this.updateUI();
                 } else {
-                    this.el.classList.add('translate-x-full');
-                    this.overlay.classList.add('opacity-0');
-                    setTimeout(() => this.overlay.classList.add('hidden'), 300);
+                    this.panel.classList.add('translate-x-full');
+                    this.backdrop.classList.add('opacity-0');
+                    setTimeout(() => this.backdrop.classList.add('hidden'), 300);
                 }
+                Utils.vibrate();
             },
 
             updateUI() {
-                document.getElementById('stat-views').innerText = Store.state.history.length;
-                document.getElementById('stat-likes').innerText = Store.state.likes.length;
-                
-                const list = document.getElementById('active-topics-list');
-                list.innerHTML = '';
-                Store.state.interests.forEach(topic => {
-                    const chip = document.createElement('span');
-                    chip.className = "px-3 py-1 rounded bg-surface border border-border text-xs text-textMuted";
-                    chip.innerText = topic;
-                    list.appendChild(chip);
+                // Métricas
+                document.getElementById('stat-read').innerText = Store.data.viewed.length;
+                document.getElementById('stat-saved').innerText = Store.data.likes.length;
+
+                // Filtros
+                const container = document.getElementById('list-active-filters');
+                container.innerHTML = '';
+                Store.data.interests.forEach(cat => {
+                    const tag = document.createElement('span');
+                    tag.className = 'px-2 py-1 bg-white/5 border border-white/10 text-[9px] font-mono text-txtMuted uppercase';
+                    tag.innerText = cat;
+                    container.appendChild(tag);
                 });
             }
         };
 
         /**
-         * MÓDULO 6: CORE APP (Orquestador)
+         * MÓDULO 7: CONTROLADOR PRINCIPAL (APP)
          */
         const App = {
-            tempCards: [], // Cache local de la sesión
-            isLoading: false,
-
-            init() {
+            async init() {
                 Store.init();
                 
-                if (!Store.state.onboarding) {
-                    this.renderOnboarding();
-                } else {
-                    document.getElementById('onboarding-screen').style.display = 'none';
+                // Verificar si es usuario recurrente
+                if (Store.data.onboarding) {
+                    document.getElementById('app-layer-onboarding').style.display = 'none';
+                    await ContentEngine.load();
                     this.startFeed();
+                } else {
+                    this.initOnboarding();
                 }
-                
-                UI.initObserver();
             },
 
             // --- Lógica de Onboarding ---
-            renderOnboarding() {
+            initOnboarding() {
+                // Categorías disponibles (Hardcoded para selección inicial)
                 const topics = [
-                    "Psicología", "Astronomía", "Filosofía", "Historia", 
-                    "Tecnología", "Biología", "Arte", "Literatura", 
-                    "Cine", "Arquitectura", "Música", "Política",
-                    "Economía", "Sociología", "Física", "Química"
+                    "Tecnología", "Ciencia", "Historia", "Arte", 
+                    "Filosofía", "Psicología", "Negocios", "Astronomía", 
+                    "Cine", "Literatura", "Política", "Biología"
                 ];
                 
-                const grid = document.getElementById('topics-grid');
+                const grid = document.getElementById('grid-interests');
                 topics.forEach(t => {
                     const btn = document.createElement('button');
-                    btn.className = "text-left p-4 rounded-xl border border-white/10 bg-white/5 text-textMuted font-medium transition-all active:scale-95";
-                    btn.innerText = t;
+                    btn.className = "text-left p-4 bg-white/5 border border-white/10 text-txtMuted font-bold hover:bg-white/10 hover:border-brick transition-all active:scale-95 h-24 flex items-end";
+                    btn.innerHTML = `<span class="text-sm font-mono uppercase">${t}</span>`;
+                    
                     btn.onclick = () => {
-                        const idx = Store.state.interests.indexOf(t);
-                        if (idx > -1) {
-                            Store.state.interests.splice(idx, 1);
-                            btn.classList.remove('border-primary', 'bg-primary/20', 'text-white');
+                        if (Store.data.interests.includes(t)) {
+                            Store.data.interests = Store.data.interests.filter(i => i !== t);
+                            btn.classList.remove('border-brick', 'bg-brick/10', 'text-white');
+                            btn.classList.add('border-white/10', 'bg-white/5', 'text-txtMuted');
                         } else {
-                            if (Store.state.interests.length >= 3) return;
-                            Store.state.interests.push(t);
-                            btn.classList.add('border-primary', 'bg-primary/20', 'text-white');
+                            if (Store.data.interests.length >= 5) return; // Max 5
+                            Store.data.interests.push(t);
+                            btn.classList.add('border-brick', 'bg-brick/10', 'text-white');
+                            btn.classList.remove('border-white/10', 'bg-white/5', 'text-txtMuted');
                         }
                         
-                        // Actualizar UI Onboarding
-                        document.getElementById('topic-counter').innerText = `${Store.state.interests.length}/3`;
-                        const startBtn = document.getElementById('btn-start');
-                        startBtn.disabled = Store.state.interests.length < 3;
-                        if (!startBtn.disabled) startBtn.classList.add('bg-white', 'text-black');
+                        document.getElementById('counter-interests').innerText = `${Store.data.interests.length}/3`;
+                        document.getElementById('btn-start').disabled = Store.data.interests.length < 3;
+                        Utils.vibrate(5);
                     };
                     grid.appendChild(btn);
                 });
             },
 
-            completeOnboarding() {
-                Store.state.onboarding = true;
+            async completeOnboarding() {
+                Store.data.onboarding = true;
                 Store.save();
-                const screen = document.getElementById('onboarding-screen');
-                screen.style.transform = 'translateY(-100%)';
+                
+                // Animación de salida
+                const layer = document.getElementById('app-layer-onboarding');
+                layer.style.transform = 'translateY(-100%)';
+                
+                await ContentEngine.load();
+                
                 setTimeout(() => {
-                    screen.style.display = 'none';
+                    layer.style.display = 'none';
                     this.startFeed();
-                }, 700);
+                }, 600);
             },
 
-            // --- Lógica de Feed ---
-            async startFeed() {
-                // Carga inicial agresiva (3 cards)
-                await this.loadMore();
-                document.getElementById('initial-loader').remove();
-                await this.loadMore();
-                await this.loadMore();
+            // --- Lógica del Feed ---
+            startFeed() {
+                document.getElementById('loader-initial').remove();
+                document.getElementById('loader-infinite').style.opacity = '1';
+                
+                UI.setupInfiniteScroll();
+                
+                // Cargar buffer inicial (3 bloques)
+                this.loadNextBlock();
+                this.loadNextBlock();
+                this.loadNextBlock();
             },
 
-            async loadMore() {
-                if (this.isLoading) return;
-                this.isLoading = true;
-                document.getElementById('infinite-loader').style.opacity = '1';
-
-                try {
-                    const data = await APIManager.fetchNext(Store.state.interests);
-                    if (data) {
-                        this.tempCards.push(data);
-                        UI.createCard(data);
-                    }
-                } catch (e) {
-                    console.error(e);
+            loadNextBlock() {
+                const data = ContentEngine.getNextBlock();
+                if (data) {
+                    UI.createCard(data);
+                } else {
+                    // Si falla catastróficamente
+                    Utils.toast("No hay más datos disponibles", "error");
                 }
-
-                this.isLoading = false;
-                document.getElementById('infinite-loader').style.opacity = '0';
             },
 
-            handleLike(btn, id) {
-                const card = this.tempCards.find(c => c.id === id);
-                if (!card) return;
-
-                const isLiked = Store.toggleLike(card);
+            // --- Acciones de Usuario ---
+            toggleLike(btn, id) {
+                const isLiked = Store.toggleLike(id);
                 const icon = btn.querySelector('svg');
                 
                 if (isLiked) {
-                    btn.classList.add('text-accent', 'bg-accent/10', 'border-accent/50');
-                    btn.classList.remove('text-textMuted');
-                    icon.setAttribute('fill', 'currentColor');
-                    UI.toast("Guardado en tu biblioteca");
-                    if (navigator.vibrate) navigator.vibrate(50);
+                    icon.classList.add('text-brick', 'fill-brick');
+                    icon.classList.remove('text-txtMuted');
+                    Utils.toast("Bloque Guardado");
+                    Utils.vibrate([10, 50, 10]);
                 } else {
-                    btn.classList.remove('text-accent', 'bg-accent/10', 'border-accent/50');
-                    btn.classList.add('text-textMuted');
-                    icon.setAttribute('fill', 'none');
+                    icon.classList.remove('text-brick', 'fill-brick');
+                    icon.classList.add('text-txtMuted');
+                    Utils.vibrate(10);
+                }
+            },
+
+            refreshData() {
+                if(confirm("¿Recargar base de datos desde Sheets?")) {
+                    location.reload();
                 }
             },
 
             hardReset() {
-                if (confirm("¿Borrar todo y reiniciar?")) {
-                    localStorage.removeItem(Store.key);
-                    location.reload();
+                if(confirm("¿⚠ FORMATEAR SISTEMA? Se borrarán todos tus progresos.")) {
+                    Store.reset();
                 }
             }
         };
 
-        // ARRANCAR
+        // INICIALIZACIÓN
         window.addEventListener('DOMContentLoaded', () => App.init());
 
     </script>
