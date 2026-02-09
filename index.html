@@ -3,11 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <meta name="description" content="Bricked - (not) DoomScrolling">
+    <meta name="description" content="Bricked - Adaptive Knowledge OS">
     <meta name="theme-color" content="#050505">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <title>BRICKED | OS</title>
+    <title>BRICKED | Adaptive</title>
 
     <script src="https://cdn.tailwindcss.com"></script>
     
@@ -17,47 +17,48 @@
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800;900&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500&family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 
     <script>
         /**
-         * 🚨 ZONA DE CONFIGURACIÓN DEL USUARIO 🚨
-         * Pega aquí el link que obtuviste en: Archivo > Compartir > Publicar en la web > CSV
+         * ⚠️ CONFIGURACIÓN DEL USUARIO ⚠️
+         * Pega aquí el enlace CSV publicado de tu Google Sheet.
+         * Columnas requeridas: Categoria, Titulo, Resumen, Fuente, Link, ImagenKeyword
          */
         const GOOGLE_SHEET_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRH7tvjL9usAdbPX9T4hVaPjbk0eykei7sghqShiMzUMvUtpH80BEniasmAWBlgtjH4UjVy5dJBT-So/pub?output=csv"; 
-        
-        // Configuración de Tailwind para el Design System "Bricked"
+
+        // Tailwind Config - Sistema de Diseño
         tailwind.config = {
             darkMode: 'class',
             theme: {
                 extend: {
                     fontFamily: {
                         sans: ['Inter', 'sans-serif'],
+                        serif: ['Playfair Display', 'serif'],
                         mono: ['JetBrains Mono', 'monospace'],
                     },
                     colors: {
-                        // Paleta Industrial
-                        bg: '#050505',          // Negro Profundo
-                        surface: '#0F0F0F',     // Gris Asfalto
-                        surfaceLight: '#1A1A1A',// Gris Concreto
-                        border: '#262626',      // Borde Sutil
+                        // Paleta "Obsidian & Brick"
+                        bg: '#050505',
+                        surface: '#0A0A0A',
+                        surfaceHighlight: '#141414',
+                        border: 'rgba(255, 255, 255, 0.08)',
                         
                         // Acentos
-                        brick: '#E63946',       // Rojo Ladrillo (Primary)
-                        brickDark: '#9D0208',   // Rojo Sangre (Hover)
-                        alert: '#F4A261',       // Naranja Industrial
+                        primary: '#D62828',    // Rojo Intenso
+                        accent: '#F77F00',     // Naranja Fuego
                         
-                        // Texto
-                        txtMain: '#EDEDED',
-                        txtMuted: '#8D8D8D',
+                        // Textos
+                        txtMain: '#F1F1F1',
+                        txtMuted: '#888888',
                     },
                     height: {
-                        'screen-dvh': '100dvh', // Altura real en móviles
+                        'dvh': '100dvh', 
                     },
                     animation: {
+                        'fade-in': 'fadeIn 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards',
+                        'slide-up': 'slideUp 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards',
                         'pulse-slow': 'pulse 4s cubic-bezier(0.4, 0, 0.6, 1) infinite',
-                        'slide-up': 'slideUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards',
-                        'fade-in': 'fadeIn 0.5s ease-out forwards',
                     },
                     keyframes: {
                         slideUp: {
@@ -83,17 +84,16 @@
 
         body { 
             background-color: #050505; 
-            color: #EDEDED; 
-            overflow: hidden; /* El body no scrollea, solo el contenedor */
-            overscroll-behavior-y: none; /* Evita el rebote en iOS */
+            color: #F1F1F1; 
+            overflow: hidden; 
+            overscroll-behavior-y: none;
             -webkit-font-smoothing: antialiased;
         }
 
-        /* Ocultar Scrollbars pero mantener funcionalidad */
+        /* Scroll Engine Invisible */
         .no-scrollbar::-webkit-scrollbar { display: none; }
         .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
 
-        /* --- MOTOR DE SCROLL (SNAP) --- */
         #feed-engine {
             height: 100dvh;
             width: 100vw;
@@ -116,157 +116,134 @@
             background-color: #050505;
         }
 
-        /* --- TEXTURAS & EFECTOS --- */
-        
-        /* Efecto de Ruido (Noise) para textura de "Concreto" */
-        .bg-noise {
+        /* Texturas y Efectos */
+        .bg-grain {
             position: fixed;
             top: 0; left: 0; width: 100%; height: 100%;
             pointer-events: none;
-            z-index: 5;
-            opacity: 0.03;
-            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+            z-index: 50;
+            opacity: 0.04;
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
         }
 
-        /* Sombra de Texto Industrial */
         .text-glow {
-            text-shadow: 0 0 20px rgba(0,0,0,0.8);
+            text-shadow: 0 4px 20px rgba(0,0,0,0.8);
         }
         
-        /* Glassmorphism Industrial */
+        /* Glassmorphism Refinado */
         .glass-panel {
-            background: rgba(15, 15, 15, 0.90);
-            backdrop-filter: blur(16px);
-            -webkit-backdrop-filter: blur(16px);
-            border-left: 1px solid rgba(255, 255, 255, 0.05);
+            background: rgba(10, 10, 10, 0.85);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-left: 1px solid rgba(255, 255, 255, 0.08);
+            box-shadow: -10px 0 40px rgba(0,0,0,0.8);
         }
 
-        /* Líneas de conexión decorativas */
-        .connection-line {
-            position: absolute;
-            background: rgba(255, 255, 255, 0.1);
-            z-index: 1;
+        /* Toggles Personalizados */
+        .toggle-checkbox:checked {
+            right: 0;
+            border-color: #D62828;
         }
-
-        /* Skeleton Loading */
-        .skeleton {
-            background: linear-gradient(90deg, #111 25%, #222 50%, #111 75%);
-            background-size: 200% 100%;
-            animation: loading 1.5s infinite;
+        .toggle-checkbox:checked + .toggle-label {
+            background-color: #D62828;
         }
-        @keyframes loading { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
+        
+        /* Loader Animation */
+        .loader-bar {
+            width: 4px;
+            height: 100%;
+            background: #D62828;
+            animation: loadY 1s ease-in-out infinite;
+        }
+        @keyframes loadY { 0%, 100% { height: 10%; } 50% { height: 100%; } }
 
     </style>
 </head>
-<body class="antialiased selection:bg-brick selection:text-white">
+<body class="antialiased selection:bg-primary selection:text-white">
 
-    <div class="bg-noise"></div>
+    <div class="bg-grain"></div>
 
-    <div id="app-layer-onboarding" class="fixed inset-0 z-50 bg-bg flex flex-col transition-transform duration-700 ease-in-out">
-        
-        <div class="pt-[var(--safe-top)] px-6 mt-6 mb-4 z-10">
-            <div class="flex items-center gap-2 mb-2">
-                <div class="w-3 h-3 bg-brick"></div>
-                <span class="text-[10px] font-mono tracking-[0.2em] text-brick uppercase">System Boot</span>
-            </div>
-            <h1 class="text-5xl font-black text-white tracking-tighter mb-2">BRICKED<span class="text-brick">.</span></h1>
-            <p class="text-txtMuted font-mono text-xs max-w-[250px]">Construye tu conocimiento, un bloque a la vez.</p>
+    <div id="splash-screen" class="fixed inset-0 z-[100] bg-bg flex flex-col items-center justify-center transition-opacity duration-700">
+        <div class="relative flex gap-2 h-12 items-center mb-6">
+            <div class="loader-bar" style="animation-delay: 0s"></div>
+            <div class="loader-bar" style="animation-delay: 0.1s"></div>
+            <div class="loader-bar" style="animation-delay: 0.2s"></div>
+            <div class="loader-bar" style="animation-delay: 0.3s"></div>
         </div>
-
-        <div class="flex-1 overflow-y-auto px-6 pb-32 no-scrollbar">
-            <div class="flex justify-between items-end mb-6 border-b border-border pb-2">
-                <span class="text-xs font-bold text-white uppercase tracking-widest">Protocolo de Inicio</span>
-                <span id="counter-interests" class="text-xs font-mono text-brick">0/3</span>
-            </div>
-            
-            <div id="grid-interests" class="grid grid-cols-2 gap-3"></div>
-        </div>
-
-        <div class="absolute bottom-0 left-0 w-full p-6 pb-[calc(var(--safe-bottom)+1rem)] bg-gradient-to-t from-bg via-bg to-transparent z-20">
-            <button id="btn-start" onclick="App.completeOnboarding()" disabled 
-                class="group w-full h-14 bg-white text-black font-bold text-sm font-mono uppercase tracking-widest disabled:opacity-20 disabled:cursor-not-allowed transition-all active:scale-[0.98] flex items-center justify-center gap-3">
-                <span>Inicializar Feed</span>
-                <i data-lucide="arrow-right" class="w-4 h-4 group-hover:translate-x-1 transition-transform"></i>
-            </button>
-        </div>
+        <h1 class="text-4xl font-serif font-bold text-white tracking-tight mb-2">BRICKED</h1>
+        <p class="text-xs font-mono text-primary uppercase tracking-[0.3em]">Adaptive Engine</p>
+        <p id="loading-status" class="mt-8 text-[10px] font-mono text-txtMuted animate-pulse">Conectando base de datos...</p>
     </div>
 
     <nav class="fixed top-0 left-0 w-full z-40 px-5 pt-[var(--safe-top)] mt-4 flex justify-between items-start pointer-events-none mix-blend-difference">
-        <div class="pointer-events-auto border border-white/20 bg-black/20 backdrop-blur px-3 py-1 flex items-center gap-2">
-            <div class="w-1.5 h-1.5 rounded-full bg-brick animate-pulse"></div>
-            <span class="text-[10px] font-mono font-bold text-white tracking-widest">LIVE v1.0</span>
+        <div class="pointer-events-auto border border-white/10 bg-black/20 backdrop-blur px-3 py-1.5 flex items-center gap-3 rounded-sm">
+            <div id="live-indicator" class="w-1.5 h-1.5 rounded-full bg-primary animate-pulse"></div>
+            <span class="text-[10px] font-mono font-bold text-white tracking-widest">FEED</span>
         </div>
 
-        <button onclick="Sidebar.toggle()" class="pointer-events-auto p-3 border border-white/20 bg-black/20 backdrop-blur text-white hover:bg-white/10 active:scale-90 transition-all group">
-            <i data-lucide="menu" class="w-6 h-6 group-hover:rotate-90 transition-transform duration-300"></i>
+        <button onclick="Sidebar.toggle()" class="pointer-events-auto p-3 border border-white/10 bg-black/20 backdrop-blur text-white hover:bg-white/10 active:scale-95 transition-all group rounded-sm">
+            <i data-lucide="sliders-horizontal" class="w-5 h-5 group-hover:rotate-180 transition-transform duration-500"></i>
         </button>
     </nav>
 
     <main id="feed-engine">
-        <div id="loader-initial" class="h-screen w-full flex flex-col items-center justify-center bg-bg relative">
-            <div class="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')] opacity-20"></div>
-            <div class="flex flex-col items-center gap-6 z-10">
-                <div class="w-16 h-16 border-4 border-brick border-t-transparent animate-spin rounded-none"></div>
-                <div class="flex flex-col items-center gap-1">
-                    <p class="text-xs font-mono text-brick uppercase tracking-widest animate-pulse">Cargando Módulos</p>
-                    <p class="text-[10px] text-txtMuted font-mono">Sincronizando Sheets...</p>
-                </div>
-            </div>
-        </div>
-    </main>
+        </main>
 
     <div id="loader-infinite" class="fixed bottom-8 left-1/2 -translate-x-1/2 z-30 opacity-0 transition-opacity pointer-events-none pb-[var(--safe-bottom)]">
-        <div class="flex gap-1">
-            <div class="w-1 h-4 bg-brick animate-[pulse_1s_ease-in-out_infinite]"></div>
-            <div class="w-1 h-4 bg-brick animate-[pulse_1s_ease-in-out_0.2s_infinite]"></div>
-            <div class="w-1 h-4 bg-brick animate-[pulse_1s_ease-in-out_0.4s_infinite]"></div>
+        <div class="flex items-center gap-2 px-4 py-2 bg-black/80 backdrop-blur border border-white/10 rounded-full">
+            <div class="w-3 h-3 border-2 border-primary border-t-transparent rounded-full animate-spin"></div>
+            <span class="text-[10px] font-mono text-white uppercase">Cargando</span>
         </div>
     </div>
 
-    <div id="toast-zone" class="fixed top-24 left-1/2 -translate-x-1/2 z-50 flex flex-col gap-2 w-max max-w-[90vw] pointer-events-none"></div>
+    <div id="toast-zone" class="fixed top-24 left-1/2 -translate-x-1/2 z-[60] flex flex-col gap-2 w-max max-w-[90vw] pointer-events-none"></div>
 
-    <div id="sidebar-backdrop" onclick="Sidebar.toggle()" class="fixed inset-0 z-40 bg-black/80 backdrop-blur-sm hidden opacity-0 transition-opacity duration-300"></div>
+    <div id="sidebar-backdrop" onclick="Sidebar.toggle()" class="fixed inset-0 z-[45] bg-black/90 backdrop-blur-sm hidden opacity-0 transition-opacity duration-500"></div>
     
-    <aside id="sidebar-panel" class="fixed inset-y-0 right-0 z-50 w-80 glass-panel transform translate-x-full transition-transform duration-300 flex flex-col bg-[#0a0a0a]">
-        <div class="pt-[var(--safe-top)] mt-6 px-6 pb-6 border-b border-border flex justify-between items-center">
-            <h2 class="font-bold text-xl text-white tracking-tight">Estructura</h2>
-            <button onclick="Sidebar.toggle()" class="text-txtMuted hover:text-white transition"><i data-lucide="x" class="w-6 h-6"></i></button>
+    <aside id="sidebar-panel" class="fixed inset-y-0 right-0 z-[50] w-80 glass-panel transform translate-x-full transition-transform duration-500 ease-out flex flex-col bg-[#0a0a0a]">
+        
+        <div class="pt-[var(--safe-top)] mt-4 px-6 pb-6 border-b border-border flex justify-between items-center bg-black/20">
+            <div>
+                <h2 class="font-serif font-bold text-xl text-white tracking-tight">Preferencias</h2>
+                <p class="text-[10px] font-mono text-txtMuted mt-1">Personaliza tu algoritmo</p>
+            </div>
+            <button onclick="Sidebar.toggle()" class="text-txtMuted hover:text-white transition p-2 bg-white/5 rounded-full"><i data-lucide="x" class="w-5 h-5"></i></button>
         </div>
 
         <div class="flex-1 overflow-y-auto p-6 no-scrollbar">
             
             <div class="mb-8">
-                <h3 class="text-[10px] font-mono text-txtMuted uppercase mb-4 tracking-widest border-l-2 border-brick pl-2">Métricas</h3>
-                <div class="grid grid-cols-2 gap-3">
-                    <div class="bg-surfaceLight p-4 border border-border">
-                        <span id="stat-read" class="block text-3xl font-black text-white mb-1">0</span>
-                        <span class="text-[9px] font-bold text-txtMuted uppercase tracking-wider">Bloques Leídos</span>
+                <div class="flex justify-between items-center mb-4">
+                    <h3 class="text-[10px] font-mono text-primary uppercase tracking-widest font-bold">Categorías Activas</h3>
+                    <button onclick="App.resetFilters()" class="text-[10px] text-txtMuted underline hover:text-white">Mostrar Todo</button>
+                </div>
+                
+                <div id="filter-list" class="space-y-3">
                     </div>
-                    <div class="bg-surfaceLight p-4 border border-border">
-                        <span id="stat-saved" class="block text-3xl font-black text-brick mb-1">0</span>
-                        <span class="text-[9px] font-bold text-txtMuted uppercase tracking-wider">Favoritos</span>
+            </div>
+
+            <div class="mb-8 pt-6 border-t border-border">
+                <h3 class="text-[10px] font-mono text-txtMuted uppercase mb-4 tracking-widest">Tu Progreso</h3>
+                <div class="grid grid-cols-2 gap-3">
+                    <div class="bg-surfaceHighlight p-4 border border-border rounded-lg">
+                        <span id="stat-read" class="block text-2xl font-serif font-bold text-white mb-1">0</span>
+                        <span class="text-[9px] font-mono font-bold text-txtMuted uppercase">Vistos</span>
+                    </div>
+                    <div class="bg-surfaceHighlight p-4 border border-border rounded-lg">
+                        <span id="stat-likes" class="block text-2xl font-serif font-bold text-primary mb-1">0</span>
+                        <span class="text-[9px] font-mono font-bold text-txtMuted uppercase">Likes</span>
                     </div>
                 </div>
             </div>
 
-            <div class="mb-8">
-                <h3 class="text-[10px] font-mono text-txtMuted uppercase mb-4 tracking-widest border-l-2 border-white pl-2">Filtros Activos</h3>
-                <div id="list-active-filters" class="flex flex-wrap gap-2">
-                    </div>
-            </div>
-
             <div class="mt-auto space-y-3">
-                <button onclick="App.refreshData()" class="w-full py-3 bg-white/5 border border-white/10 text-white text-xs font-mono uppercase hover:bg-white/10 transition flex items-center justify-center gap-2">
-                    <i data-lucide="refresh-cw" class="w-3 h-3"></i> Recargar Sheets
+                <button onclick="App.reloadDB()" class="w-full py-3 bg-surfaceHighlight border border-border text-white text-xs font-mono uppercase hover:bg-white/10 transition flex items-center justify-center gap-2 rounded-sm">
+                    <i data-lucide="refresh-cw" class="w-3 h-3"></i> Sincronizar
                 </button>
                 
-                <button onclick="App.hardReset()" class="w-full py-3 border border-brick/30 text-brick text-xs font-mono uppercase hover:bg-brick/10 transition flex items-center justify-center gap-2">
-                    <i data-lucide="trash-2" class="w-3 h-3"></i> Formatear Sistema
+                <button onclick="App.hardReset()" class="w-full py-3 border border-red-900/40 text-red-500 text-xs font-mono uppercase hover:bg-red-900/10 transition flex items-center justify-center gap-2 rounded-sm">
+                    <i data-lucide="trash-2" class="w-3 h-3"></i> Reset Fábrica
                 </button>
-            </div>
-            
-            <div class="mt-8 text-center">
-                <p class="text-[9px] font-mono text-txtMuted">BRICKED OS v1.0.4<br>System Operational</p>
             </div>
         </div>
     </aside>
@@ -274,130 +251,98 @@
     <script>
         
         /**
-         * MÓDULO 1: UTILIDADES & HELPERS
-         * Funciones auxiliares para el funcionamiento general.
-         */
-        const Utils = {
-            // Genera una espera asíncrona
-            wait: (ms) => new Promise(r => setTimeout(r, ms)),
-            
-            // Mezcla un array (Algoritmo Fisher-Yates)
-            shuffle: (array) => {
-                for (let i = array.length - 1; i > 0; i--) {
-                    const j = Math.floor(Math.random() * (i + 1));
-                    [array[i], array[j]] = [array[j], array[i]];
-                }
-                return array;
-            },
-
-            // Vibración háptica segura
-            vibrate: (pattern = 10) => {
-                if (navigator.vibrate) navigator.vibrate(pattern);
-            },
-
-            // Sistema de Notificaciones Toast
-            toast: (msg, type = 'normal') => {
-                const el = document.createElement('div');
-                const color = type === 'error' ? 'text-brick border-brick' : 'text-white border-white/20';
-                el.className = `bg-black/80 backdrop-blur px-4 py-3 border ${color} text-xs font-mono font-bold uppercase tracking-wide shadow-2xl animate-fade-in flex items-center gap-3`;
-                
-                el.innerHTML = `
-                    <div class="w-2 h-2 bg-${type === 'error' ? 'brick' : 'white'} animate-pulse"></div>
-                    ${msg}
-                `;
-                
-                const container = document.getElementById('toast-zone');
-                container.appendChild(el);
-                setTimeout(() => {
-                    el.style.opacity = '0';
-                    setTimeout(() => el.remove(), 500);
-                }, 3000);
-            }
-        };
-
-        /**
-         * MÓDULO 2: DATOS DE RESPALDO (MOCK DATA)
-         * Se usa si no hay link de Sheets o si falla la carga.
-         * Cumple con el requisito de tener datos de ejemplo robustos.
+         * MÓDULO 1: MOCK DATA (Fallback)
+         * Datos de respaldo de alta calidad para cuando no hay Sheet.
          */
         const MOCK_DB = [
-            { Categoria: "Tecnología", Titulo: "La Paradoja de Moravec", Resumen: "Es fácil conseguir que las computadoras muestren capacidades similares a las de un adulto en test de inteligencia, pero difícil que tengan las habilidades perceptivas y motrices de un niño de un año.", Fuente: "AI Magazine", Link: "#", ImagenKeyword: "Robot Hand" },
-            { Categoria: "Física", Titulo: "Entrelazamiento Cuántico", Resumen: "Un fenómeno donde dos partículas quedan ligadas y comparten el mismo estado físico, sin importar la distancia que las separe, incluso a años luz. Einstein lo llamó 'acción fantasmal a distancia'.", Fuente: "Nature Physics", Link: "#", ImagenKeyword: "Quantum Particles" },
-            { Categoria: "Psicología", Titulo: "Efecto Zeigarnik", Resumen: "El cerebro tiende a recordar mejor las tareas incompletas o interrumpidas que las que se han completado. Por eso los 'cliffhangers' en las series funcionan tan bien.", Fuente: "Psychology Today", Link: "#", ImagenKeyword: "Brain Synapse" },
-            { Categoria: "Historia", Titulo: "El Manuscrito Voynich", Resumen: "Un libro ilustrado de contenidos desconocidos, escrito hace unos 500 años por un autor anónimo en un alfabeto no identificado y un idioma incomprensible. Nunca ha sido descifrado.", Fuente: "Yale Library", Link: "#", ImagenKeyword: "Old Book Mystery" },
-            { Categoria: "Biología", Titulo: "Inmortalidad Biológica", Resumen: "La medusa Turritopsis dohrnii es biológicamente inmortal. Puede revertir su ciclo de vida desde la etapa adulta a la inmadurez de pólipo repetidamente.", Fuente: "National Geo", Link: "#", ImagenKeyword: "Jellyfish Deep Sea" },
-            { Categoria: "Economía", Titulo: "Cisne Negro", Resumen: "Teoría de Nassim Taleb que describe sucesos sorpresivos, de gran impacto socioeconómico y que, una vez pasados, se racionalizan por retrospección haciendo que parezcan predecibles.", Fuente: "Investopedia", Link: "#", ImagenKeyword: "Black Swan Abstract" },
-            { Categoria: "Filosofía", Titulo: "El Basilisco de Roko", Resumen: "Un experimento mental que plantea que una futura superinteligencia artificial podría castigar retroactivamente a todos los que no ayudaron a crearla.", Fuente: "LessWrong", Link: "#", ImagenKeyword: "Evil AI Red" },
-            { Categoria: "Arte", Titulo: "Vantablack", Resumen: "Una sustancia hecha de nanotubos de carbono que es una de las sustancias más oscuras conocidas, absorbiendo hasta el 99.965% de la radiación de luz visible.", Fuente: "Surrealism Art", Link: "#", ImagenKeyword: "Black Hole Texture" },
-            { Categoria: "Astronomía", Titulo: "La Gran Muralla Sloan", Resumen: "Una de las estructuras más grandes conocidas en el universo. Es una pared gigante de galaxias que mide 1.37 mil millones de años luz de largo.", Fuente: "NASA Hubblesite", Link: "#", ImagenKeyword: "Galaxy Cluster" },
-            { Categoria: "Derecho", Titulo: "Nulla Poena Sine Lege", Resumen: "Principio fundamental: 'No hay pena sin ley'. Nadie puede ser castigado por algo que no estaba prohibido por la ley en el momento en que se cometió.", Fuente: "Legal Dictionary", Link: "#", ImagenKeyword: "Gavel Courtroom" }
+            { Categoria: "Tecnología", Titulo: "La Singularidad Tecnológica", Resumen: "Un punto hipotético en el futuro donde el crecimiento tecnológico se vuelve incontrolable e irreversible, resultando en cambios insondables para la civilización humana.", Fuente: "Kurzweil AI", Link: "#", ImagenKeyword: "Artificial Intelligence Abstract" },
+            { Categoria: "Física", Titulo: "Materia Oscura", Resumen: "Aproximadamente el 85% de la materia del universo es 'oscura', lo que significa que no interactúa con el campo electromagnético. No la vemos, pero su gravedad mantiene unidas a las galaxias.", Fuente: "CERN", Link: "#", ImagenKeyword: "Dark Matter Space" },
+            { Categoria: "Arte", Titulo: "Wabi-Sabi", Resumen: "Una estética japonesa centrada en la aceptación de la fugacidad y la imperfección. A veces se describe como belleza que es 'imperfecta, impermanente e incompleta'.", Fuente: "Kyoto Journal", Link: "#", ImagenKeyword: "Japanese Pottery Texture" },
+            { Categoria: "Psicología", Titulo: "Efecto Stroop", Resumen: "Demuestra la interferencia en el tiempo de reacción de una tarea. Cuando el nombre de un color (ej. 'Azul') está escrito en tinta roja, tardamos más en nombrar el color de la tinta.", Fuente: "Neuroscience News", Link: "#", ImagenKeyword: "Optical Illusion" },
+            { Categoria: "Filosofía", Titulo: "Alegoría de la Caverna", Resumen: "Platón describe a prisioneros que solo ven sombras en una pared y creen que son la realidad. Al salir, descubren que la verdad es mucho más compleja y brillante.", Fuente: "Stanford Encyclopedia", Link: "#", ImagenKeyword: "Cave Light Philosophy" },
+            { Categoria: "Historia", Titulo: "Mecanismo de Anticitera", Resumen: "Una computadora analógica antigua diseñada para predecir posiciones astronómicas y eclipses. Fue construida por los griegos alrededor del 150 a.C., mil años antes de algo similar.", Fuente: "Nature", Link: "#", ImagenKeyword: "Ancient Gear Mechanism" },
+            { Categoria: "Biología", Titulo: "CRISPR-Cas9", Resumen: "Una tecnología revolucionaria que permite a los genetistas y médicos editar partes del genoma eliminando, agregando o alterando secciones de la secuencia de ADN.", Fuente: "Science Mag", Link: "#", ImagenKeyword: "DNA Helix" }
         ];
 
         /**
-         * MÓDULO 3: GESTIÓN DE ESTADO (LOCALSTORAGE)
-         * Persistencia de datos del usuario.
+         * MÓDULO 2: STORE & STATE
+         * Gestión de persistencia y lógica de usuario.
          */
-        const Store = {
-            key: 'bricked_os_v1',
-            data: {
-                onboarding: false,
-                interests: [],
-                viewed: [], // IDs (Títulos) vistos para no repetir
-                likes: []   // IDs (Títulos) guardados
+        const AppStore = {
+            key: 'bricked_adaptive_v2',
+            state: {
+                viewedIDs: [], // Lista de Títulos vistos
+                likedIDs: [],  // Lista de Títulos likeados
+                likedCategories: {}, // Mapa de frecuencia: { "Física": 5, "Arte": 2 }
+                activeFilters: [], // Categorías activas (Vacío = Todas)
             },
 
             init() {
                 const saved = localStorage.getItem(this.key);
-                if (saved) {
-                    this.data = JSON.parse(saved);
-                }
+                if (saved) this.state = JSON.parse(saved);
             },
 
             save() {
-                localStorage.setItem(this.key, JSON.stringify(this.data));
-                Sidebar.updateUI();
+                localStorage.setItem(this.key, JSON.stringify(this.state));
             },
 
             markViewed(id) {
-                if (!this.data.viewed.includes(id)) {
-                    this.data.viewed.push(id);
-                    // Límite de historia para no saturar memoria (300 items)
-                    if (this.data.viewed.length > 300) this.data.viewed.shift();
+                if (!this.state.viewedIDs.includes(id)) {
+                    this.state.viewedIDs.push(id);
+                    // Mantener historial limpio (Max 500)
+                    if (this.state.viewedIDs.length > 500) this.state.viewedIDs.shift();
                     this.save();
                 }
             },
 
-            toggleLike(id) {
-                if (this.data.likes.includes(id)) {
-                    this.data.likes = this.data.likes.filter(item => item !== id);
-                    this.save();
-                    return false;
+            toggleLike(item) {
+                const id = item.Titulo;
+                const cat = item.Categoria;
+                let isLiked = false;
+
+                if (this.state.likedIDs.includes(id)) {
+                    // Remove Like
+                    this.state.likedIDs = this.state.likedIDs.filter(x => x !== id);
+                    if (this.state.likedCategories[cat]) this.state.likedCategories[cat]--;
+                    isLiked = false;
                 } else {
-                    this.data.likes.push(id);
-                    this.save();
-                    return true;
+                    // Add Like
+                    this.state.likedIDs.push(id);
+                    this.state.likedCategories[cat] = (this.state.likedCategories[cat] || 0) + 1;
+                    isLiked = true;
                 }
+                this.save();
+                return isLiked;
             },
 
-            reset() {
-                localStorage.removeItem(this.key);
-                location.reload();
+            toggleFilter(cat) {
+                if (this.state.activeFilters.includes(cat)) {
+                    this.state.activeFilters = this.state.activeFilters.filter(c => c !== cat);
+                } else {
+                    this.state.activeFilters.push(cat);
+                }
+                this.save();
+                return this.state.activeFilters.includes(cat);
+            },
+            
+            resetFilters() {
+                this.state.activeFilters = [];
+                this.save();
             }
         };
 
         /**
-         * MÓDULO 4: MOTOR DE CONTENIDO
-         * Lógica de filtrado y fallback.
+         * MÓDULO 3: CONTENT ENGINE
+         * Algoritmo de recomendación y carga.
          */
-        const ContentEngine = {
-            db: [], // Base de datos cruda
-            
+        const ContentSystem = {
+            db: [],
+            categories: new Set(),
+
             async load() {
                 return new Promise(resolve => {
-                    // Si no hay URL, usar Mock Data
                     if (!GOOGLE_SHEET_CSV_URL || GOOGLE_SHEET_CSV_URL.length < 5) {
-                        console.warn("Bricked: Usando Base de Datos Local (Modo Demo)");
-                        this.db = MOCK_DB;
+                        this.useMock();
                         resolve();
                         return;
                     }
@@ -407,329 +352,321 @@
                         header: true,
                         skipEmptyLines: true,
                         complete: (results) => {
-                            if (results.data && results.data.length > 0) {
-                                // Limpieza básica de datos
-                                this.db = results.data.filter(row => row.Titulo && row.Categoria);
-                                console.log(`Bricked: ${this.db.length} bloques cargados desde Sheets.`);
+                            const validData = results.data.filter(r => r.Titulo && r.Categoria);
+                            if (validData.length > 0) {
+                                this.db = validData;
+                                this.extractCategories();
+                                resolve();
                             } else {
-                                this.db = MOCK_DB;
+                                this.useMock();
+                                resolve();
                             }
-                            resolve();
                         },
-                        error: (err) => {
-                            console.error("Error CSV:", err);
-                            this.db = MOCK_DB;
-                            Utils.toast("Error de conexión. Modo Offline.", "error");
+                        error: () => {
+                            this.useMock();
                             resolve();
                         }
                     });
                 });
             },
 
+            useMock() {
+                console.warn("Usando Mock Data");
+                this.db = MOCK_DB;
+                this.extractCategories();
+            },
+
+            extractCategories() {
+                this.db.forEach(item => this.categories.add(item.Categoria));
+            },
+
             /**
-             * ALGORITMO DE SELECCIÓN INTELIGENTE (FALLBACK LOGIC)
-             * 1. Prioridad: Intereses del usuario && No visto.
-             * 2. Fallback 1: Cualquier categoría && No visto (Descubrimiento).
-             * 3. Fallback 2: Intereses del usuario (Aunque ya visto - Repaso).
-             * 4. Fallback 3: Cualquier cosa (Loop infinito).
+             * 🧠 ALGORITMO ADAPTATIVO
+             * Decide qué tarjeta mostrar a continuación.
              */
-            getNextBlock() {
-                const interests = Store.data.interests;
-                const viewed = Store.data.viewed;
-
-                // Nivel 1: Intereses + Nuevo
-                let pool = this.db.filter(item => interests.includes(item.Categoria) && !viewed.includes(item.Titulo));
-
-                // Nivel 2: Descubrimiento (Algo nuevo de otras categorías)
-                if (pool.length === 0) {
-                    pool = this.db.filter(item => !viewed.includes(item.Titulo));
+            getRecommendation() {
+                const { viewedIDs, activeFilters, likedCategories } = AppStore.state;
+                
+                // 1. Filtrar Universo (Filtros Activos)
+                let candidates = this.db;
+                if (activeFilters.length > 0) {
+                    candidates = candidates.filter(item => activeFilters.includes(item.Categoria));
                 }
 
-                // Nivel 3: Repaso (Reset parcial implícito)
-                if (pool.length === 0) {
-                    pool = this.db.filter(item => interests.includes(item.Categoria));
-                }
+                // 2. Separar Vistos de No Vistos
+                const unviewed = candidates.filter(item => !viewedIDs.includes(item.Titulo));
+                
+                // Pool final a usar (si no hay nuevos, reusamos vistos - Loop)
+                const pool = unviewed.length > 0 ? unviewed : candidates;
 
-                // Nivel 4: Loop Total
-                if (pool.length === 0) {
-                    pool = this.db;
-                }
+                if (pool.length === 0) return null;
 
-                // Selección aleatoria del pool resultante
-                const selected = pool[Math.floor(Math.random() * pool.length)];
-                return selected;
+                // 3. Sistema de Puntuación (Scoring)
+                // Asignamos un puntaje a cada candidato basado en los Likes previos
+                const scoredCandidates = pool.map(item => {
+                    let score = Math.random() * 10; // Factor aleatorio (Serendipia)
+                    
+                    // Boost por Categoría Likeada
+                    const catLikes = likedCategories[item.Categoria] || 0;
+                    score += (catLikes * 5); // +5 puntos por cada like en esa categoría
+
+                    return { item, score };
+                });
+
+                // 4. Ordenar y Seleccionar Ganador
+                scoredCandidates.sort((a, b) => b.score - a.score);
+                
+                // Tomamos el top 1
+                return scoredCandidates[0].item;
             }
         };
 
         /**
-         * MÓDULO 5: RENDERIZADO DE UI
-         * Manipulación del DOM.
+         * MÓDULO 4: UI SYSTEM
+         * Renderizado y Control Visual.
          */
-        const UI = {
+        const UISystem = {
             container: document.getElementById('feed-engine'),
+            sidebarList: document.getElementById('filter-list'),
             observer: null,
 
-            // Crea la tarjeta HTML
-            createCard(data) {
+            // Generador de Tarjetas
+            renderCard(data) {
                 const el = document.createElement('article');
-                el.className = 'brick-card bg-bg border-b border-border/20';
+                el.className = 'brick-card bg-bg border-b border-border/10';
                 
-                // Generar URL de Imagen (Pollinations AI)
-                const keyword = data.ImagenKeyword || "Abstract geometric dark";
-                const imgUrl = `https://image.pollinations.ai/prompt/${encodeURIComponent(keyword)}%20dark%20moody%20minimalist%20industrial%20wallpaper?width=720&height=1280&nologo=true&seed=${Math.random()}`;
-
-                const isLiked = Store.data.likes.includes(data.Titulo);
+                // Generar Imagen IA (Pollinations)
+                const keyword = data.ImagenKeyword || "Abstract minimalism dark";
+                const imgUrl = `https://image.pollinations.ai/prompt/${encodeURIComponent(keyword)}%20cinematic%20lighting%20dark%20moody%204k%20wallpaper?width=720&height=1280&nologo=true&seed=${Math.random()}`;
+                
+                const isLiked = AppStore.state.likedIDs.includes(data.Titulo);
 
                 el.innerHTML = `
                     <div class="absolute inset-0 z-0 bg-surface">
                         <img src="${imgUrl}" 
                              loading="lazy"
-                             class="w-full h-full object-cover opacity-50 blur-[2px] scale-105 transition-transform duration-[10s] hover:scale-110 ease-linear" 
-                             onload="this.style.opacity='0.4'">
-                        <div class="absolute inset-0 bg-gradient-to-t from-bg via-bg/90 to-transparent"></div>
+                             class="w-full h-full object-cover opacity-60 blur-[2px] scale-105 transition-transform duration-[20s] ease-linear hover:scale-110" 
+                             onload="this.style.opacity='0.5'">
+                        <div class="absolute inset-0 bg-gradient-to-t from-bg via-bg/80 to-transparent"></div>
                         <div class="absolute inset-0 bg-gradient-to-b from-bg/60 to-transparent"></div>
-                        
-                        <div class="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/diagmonds-light.png')] opacity-10 mix-blend-overlay"></div>
+                        <div class="absolute inset-0 bg-black/20 mix-blend-overlay"></div>
                     </div>
 
                     <div class="relative z-10 flex flex-col h-full w-full p-6 pt-24 pb-[calc(var(--safe-bottom)+2rem)]">
                         
-                        <div class="flex items-center justify-between mb-auto opacity-0 animate-slide-up" style="animation-delay: 100ms">
-                            <div class="flex items-center gap-3">
-                                <span class="bg-brick text-white text-[10px] font-mono font-bold uppercase px-2 py-1 tracking-widest shadow-[0_0_15px_rgba(230,57,70,0.4)]">
-                                    ${data.Categoria}
-                                </span>
-                                <div class="h-px w-8 bg-white/20"></div>
-                            </div>
+                        <div class="flex items-center justify-between opacity-0 animate-slide-up" style="animation-delay: 100ms">
+                            <span class="bg-primary/90 text-white text-[10px] font-mono font-bold uppercase px-3 py-1 tracking-widest rounded-sm shadow-lg shadow-primary/20">
+                                ${data.Categoria}
+                            </span>
                         </div>
 
-                        <div class="flex flex-col justify-center my-8 opacity-0 animate-slide-up" style="animation-delay: 200ms">
-                            <h2 class="text-3xl md:text-5xl font-black leading-[0.95] mb-6 text-white text-glow uppercase tracking-tight">
+                        <div class="flex flex-col justify-center my-auto opacity-0 animate-slide-up" style="animation-delay: 200ms">
+                            <h2 class="text-4xl md:text-5xl font-serif font-bold leading-[1.1] mb-6 text-white text-glow tracking-tight">
                                 ${data.Titulo}
                             </h2>
                             
-                            <div class="border-l-2 border-brick pl-5 py-1 backdrop-blur-sm bg-black/10">
-                                <p class="text-lg md:text-xl text-gray-200 font-sans font-light leading-relaxed">
+                            <div class="border-l-2 border-primary pl-6 py-2 backdrop-blur-sm bg-black/20 rounded-r-lg">
+                                <p class="text-lg md:text-xl text-txtMain font-sans font-light leading-relaxed">
                                     ${data.Resumen}
                                 </p>
                             </div>
                         </div>
 
-                        <div class="mt-auto border-t border-white/10 pt-6 flex items-end justify-between opacity-0 animate-slide-up" style="animation-delay: 300ms">
-                            
+                        <div class="mt-auto pt-8 flex items-end justify-between border-t border-white/10 opacity-0 animate-slide-up" style="animation-delay: 300ms">
                             <div class="flex flex-col gap-1 max-w-[60%]">
-                                <span class="text-[9px] font-mono text-txtMuted uppercase tracking-widest">Fuente Verificada</span>
-                                <span class="text-xs font-bold text-white truncate">${data.Fuente}</span>
+                                <span class="text-[9px] font-mono text-txtMuted uppercase tracking-widest">Fuente</span>
+                                <span class="text-xs font-serif font-bold text-white italic truncate">${data.Fuente}</span>
                             </div>
 
-                            <div class="flex gap-3">
-                                <a href="${data.Link}" target="_blank" class="w-12 h-12 flex items-center justify-center border border-white/10 bg-white/5 hover:bg-white/10 text-white transition active:scale-95 group">
-                                    <i data-lucide="external-link" class="w-5 h-5 group-hover:text-brick transition-colors"></i>
+                            <div class="flex gap-4">
+                                <a href="${data.Link}" target="_blank" class="w-12 h-12 flex items-center justify-center bg-white/5 border border-white/10 rounded-full hover:bg-white/20 hover:border-white/30 transition active:scale-95">
+                                    <i data-lucide="arrow-up-right" class="w-5 h-5 text-white"></i>
                                 </a>
                                 
-                                <button onclick="App.toggleLike(this, '${data.Titulo}')" class="w-12 h-12 flex items-center justify-center border border-white/10 bg-white/5 hover:bg-white/10 transition active:scale-95 group">
-                                    <i data-lucide="heart" class="w-5 h-5 transition-colors ${isLiked ? 'text-brick fill-brick' : 'text-txtMuted group-hover:text-white'}"></i>
+                                <button onclick="App.handleLike(this, '${data.Titulo}', '${data.Categoria}')" class="w-12 h-12 flex items-center justify-center bg-white/5 border border-white/10 rounded-full hover:bg-white/20 transition active:scale-95 group">
+                                    <i data-lucide="heart" class="w-5 h-5 transition-colors duration-300 ${isLiked ? 'text-primary fill-primary' : 'text-txtMuted group-hover:text-white'}"></i>
                                 </button>
                             </div>
                         </div>
                     </div>
-                    
-                    <div class="absolute top-4 right-4 z-0">
-                        <svg width="40" height="40" viewBox="0 0 40 40" class="opacity-20">
-                            <path d="M0 0 H40 V40" fill="none" stroke="white" stroke-width="1"/>
-                        </svg>
-                    </div>
                 `;
 
                 this.container.appendChild(el);
-                
-                // Observador para scroll infinito
                 this.observer.observe(el);
                 lucide.createIcons();
             },
 
-            setupInfiniteScroll() {
+            // Generador de Sidebar
+            renderSidebar() {
+                this.sidebarList.innerHTML = '';
+                const cats = Array.from(ContentSystem.categories).sort();
+                
+                cats.forEach(cat => {
+                    const isActive = AppStore.state.activeFilters.includes(cat);
+                    
+                    const item = document.createElement('label');
+                    item.className = "flex items-center justify-between p-3 rounded-md bg-surface border border-white/5 cursor-pointer hover:bg-surfaceHighlight transition";
+                    
+                    item.innerHTML = `
+                        <span class="text-xs font-mono font-bold ${isActive ? 'text-white' : 'text-txtMuted'} uppercase">${cat}</span>
+                        <div class="relative inline-block w-10 h-5 align-middle select-none transition duration-200 ease-in">
+                            <input type="checkbox" class="toggle-checkbox absolute block w-5 h-5 rounded-full bg-white border-4 border-surface appearance-none cursor-pointer transition-all duration-300" 
+                                ${isActive ? 'checked' : ''} 
+                                onclick="App.handleFilter('${cat}')"/>
+                            <label class="toggle-label block overflow-hidden h-5 rounded-full bg-gray-800 cursor-pointer border border-white/10"></label>
+                        </div>
+                    `;
+                    this.sidebarList.appendChild(item);
+                });
+
+                // Actualizar Stats
+                document.getElementById('stat-read').innerText = AppStore.state.viewedIDs.length;
+                document.getElementById('stat-likes').innerText = AppStore.state.likedIDs.length;
+            },
+
+            setupScrollObserver() {
                 this.observer = new IntersectionObserver((entries) => {
                     entries.forEach(entry => {
                         if (entry.isIntersecting) {
                             const card = entry.target;
                             
-                            // Marcar como visto (Analytics)
-                            const title = card.querySelector('h2').innerText;
-                            Store.markViewed(title);
-                            Sidebar.updateUI();
-
-                            // Lógica de carga: Si es el penúltimo elemento, cargar el siguiente
-                            if (card.nextElementSibling === null) {
-                                App.loadNextBlock();
+                            // Registrar Vista
+                            const title = card.querySelector('h2').innerText.trim();
+                            AppStore.markViewed(title);
+                            
+                            // Carga Infinita (Trigger en el penúltimo)
+                            if (!card.nextElementSibling) {
+                                App.loadNext();
                             }
                         }
                     });
-                }, { threshold: 0.5 }); // 50% de visibilidad activa el evento
+                }, { threshold: 0.6 });
+            },
+
+            toast(msg) {
+                const el = document.createElement('div');
+                el.className = "px-4 py-2 bg-black/80 backdrop-blur border border-primary/50 text-white text-xs font-mono font-bold uppercase rounded-full shadow-2xl animate-fade-in flex items-center gap-2";
+                el.innerHTML = `<div class="w-2 h-2 bg-primary rounded-full animate-pulse"></div> ${msg}`;
+                
+                document.getElementById('toast-zone').appendChild(el);
+                setTimeout(() => {
+                    el.style.opacity = '0';
+                    setTimeout(() => el.remove(), 500);
+                }, 2000);
             }
         };
 
         /**
-         * MÓDULO 6: CONTROLADOR DEL MENÚ (SIDEBAR)
+         * MÓDULO 5: APP CONTROLLER
+         * Cerebro principal.
          */
         const Sidebar = {
             panel: document.getElementById('sidebar-panel'),
             backdrop: document.getElementById('sidebar-backdrop'),
-            
             toggle() {
-                const isClosed = this.panel.classList.contains('translate-x-full');
-                if (isClosed) {
+                const closed = this.panel.classList.contains('translate-x-full');
+                if (closed) {
                     this.panel.classList.remove('translate-x-full');
                     this.backdrop.classList.remove('hidden');
                     setTimeout(() => this.backdrop.classList.remove('opacity-0'), 10);
-                    this.updateUI();
+                    UISystem.renderSidebar(); // Refrescar estado visual
                 } else {
                     this.panel.classList.add('translate-x-full');
                     this.backdrop.classList.add('opacity-0');
-                    setTimeout(() => this.backdrop.classList.add('hidden'), 300);
+                    setTimeout(() => this.backdrop.classList.add('hidden'), 500);
                 }
-                Utils.vibrate();
-            },
-
-            updateUI() {
-                // Métricas
-                document.getElementById('stat-read').innerText = Store.data.viewed.length;
-                document.getElementById('stat-saved').innerText = Store.data.likes.length;
-
-                // Filtros
-                const container = document.getElementById('list-active-filters');
-                container.innerHTML = '';
-                Store.data.interests.forEach(cat => {
-                    const tag = document.createElement('span');
-                    tag.className = 'px-2 py-1 bg-white/5 border border-white/10 text-[9px] font-mono text-txtMuted uppercase';
-                    tag.innerText = cat;
-                    container.appendChild(tag);
-                });
             }
         };
 
-        /**
-         * MÓDULO 7: CONTROLADOR PRINCIPAL (APP)
-         */
         const App = {
             async init() {
-                Store.init();
+                AppStore.init();
                 
-                // Verificar si es usuario recurrente
-                if (Store.data.onboarding) {
-                    document.getElementById('app-layer-onboarding').style.display = 'none';
-                    await ContentEngine.load();
-                    this.startFeed();
-                } else {
-                    this.initOnboarding();
-                }
-            },
-
-            // --- Lógica de Onboarding ---
-            initOnboarding() {
-                // Categorías disponibles (Hardcoded para selección inicial)
-                const topics = [
-                    "Tecnología", "Ciencia", "Historia", "Arte", 
-                    "Filosofía", "Psicología", "Negocios", "Astronomía", 
-                    "Cine", "Literatura", "Política", "Biología"
-                ];
+                // Cargar datos
+                await ContentSystem.load();
                 
-                const grid = document.getElementById('grid-interests');
-                topics.forEach(t => {
-                    const btn = document.createElement('button');
-                    btn.className = "text-left p-4 bg-white/5 border border-white/10 text-txtMuted font-bold hover:bg-white/10 hover:border-brick transition-all active:scale-95 h-24 flex items-end";
-                    btn.innerHTML = `<span class="text-sm font-mono uppercase">${t}</span>`;
-                    
-                    btn.onclick = () => {
-                        if (Store.data.interests.includes(t)) {
-                            Store.data.interests = Store.data.interests.filter(i => i !== t);
-                            btn.classList.remove('border-brick', 'bg-brick/10', 'text-white');
-                            btn.classList.add('border-white/10', 'bg-white/5', 'text-txtMuted');
-                        } else {
-                            if (Store.data.interests.length >= 5) return; // Max 5
-                            Store.data.interests.push(t);
-                            btn.classList.add('border-brick', 'bg-brick/10', 'text-white');
-                            btn.classList.remove('border-white/10', 'bg-white/5', 'text-txtMuted');
-                        }
-                        
-                        document.getElementById('counter-interests').innerText = `${Store.data.interests.length}/3`;
-                        document.getElementById('btn-start').disabled = Store.data.interests.length < 3;
-                        Utils.vibrate(5);
-                    };
-                    grid.appendChild(btn);
-                });
-            },
-
-            async completeOnboarding() {
-                Store.data.onboarding = true;
-                Store.save();
-                
-                // Animación de salida
-                const layer = document.getElementById('app-layer-onboarding');
-                layer.style.transform = 'translateY(-100%)';
-                
-                await ContentEngine.load();
-                
+                // Ocultar Splash Screen
+                document.getElementById('loading-status').innerText = "Sistema listo";
                 setTimeout(() => {
-                    layer.style.display = 'none';
+                    const splash = document.getElementById('splash-screen');
+                    splash.style.opacity = '0';
+                    setTimeout(() => splash.style.display = 'none', 700);
+                    
                     this.startFeed();
-                }, 600);
+                }, 1000);
             },
 
-            // --- Lógica del Feed ---
             startFeed() {
-                document.getElementById('loader-initial').remove();
+                document.getElementById('feed-engine').innerHTML = '';
+                UISystem.setupScrollObserver();
                 document.getElementById('loader-infinite').style.opacity = '1';
                 
-                UI.setupInfiniteScroll();
-                
-                // Cargar buffer inicial (3 bloques)
-                this.loadNextBlock();
-                this.loadNextBlock();
-                this.loadNextBlock();
+                // Buffer inicial
+                this.loadNext();
+                this.loadNext();
+                this.loadNext(); // Precargar 3 tarjetas
             },
 
-            loadNextBlock() {
-                const data = ContentEngine.getNextBlock();
+            loadNext() {
+                const data = ContentSystem.getRecommendation();
                 if (data) {
-                    UI.createCard(data);
+                    UISystem.renderCard(data);
                 } else {
-                    // Si falla catastróficamente
-                    Utils.toast("No hay más datos disponibles", "error");
+                    UISystem.toast("No hay más contenido disponible");
                 }
             },
 
-            // --- Acciones de Usuario ---
-            toggleLike(btn, id) {
-                const isLiked = Store.toggleLike(id);
-                const icon = btn.querySelector('svg');
+            handleLike(btn, title, category) {
+                // Reconstruir objeto mínimo necesario
+                const item = { Titulo: title, Categoria: category };
+                const isLiked = AppStore.toggleLike(item);
                 
+                const icon = btn.querySelector('svg');
                 if (isLiked) {
-                    icon.classList.add('text-brick', 'fill-brick');
+                    icon.classList.add('text-primary', 'fill-primary');
                     icon.classList.remove('text-txtMuted');
-                    Utils.toast("Bloque Guardado");
-                    Utils.vibrate([10, 50, 10]);
+                    UISystem.toast("Algoritmo ajustado: " + category);
+                    if (navigator.vibrate) navigator.vibrate(50);
                 } else {
-                    icon.classList.remove('text-brick', 'fill-brick');
+                    icon.classList.remove('text-primary', 'fill-primary');
                     icon.classList.add('text-txtMuted');
-                    Utils.vibrate(10);
                 }
+                UISystem.renderSidebar(); // Actualizar contadores
             },
 
-            refreshData() {
-                if(confirm("¿Recargar base de datos desde Sheets?")) {
-                    location.reload();
-                }
+            handleFilter(cat) {
+                AppStore.toggleFilter(cat);
+                UISystem.renderSidebar();
+                
+                // Si cambiamos filtros, limpiar feed y recargar para reflejar cambios inmediatamente
+                // Opcional: Podríamos solo aplicar a las siguientes, pero reiniciar es más claro para el usuario
+                document.getElementById('feed-engine').innerHTML = '';
+                this.loadNext();
+                this.loadNext();
+            },
+
+            resetFilters() {
+                AppStore.resetFilters();
+                UISystem.renderSidebar();
+                document.getElementById('feed-engine').innerHTML = '';
+                this.loadNext();
+                this.loadNext();
+                UISystem.toast("Filtros eliminados");
+            },
+
+            reloadDB() {
+                location.reload();
             },
 
             hardReset() {
-                if(confirm("¿⚠ FORMATEAR SISTEMA? Se borrarán todos tus progresos.")) {
-                    Store.reset();
+                if(confirm("¿Estás seguro? Se borrará todo tu historial de aprendizaje.")) {
+                    localStorage.removeItem(AppStore.key);
+                    location.reload();
                 }
             }
         };
 
-        // INICIALIZACIÓN
+        // INICIAR SISTEMA
         window.addEventListener('DOMContentLoaded', () => App.init());
 
     </script>
